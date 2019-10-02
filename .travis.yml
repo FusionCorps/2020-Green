@@ -4,4 +4,5 @@ matrix:
                 - python: 3.7
 script: 
   - pip install -r requirements.txt
-  - python robot.py coverage test
+  - python robot.py test
+  - python-codacy-coverage -r coverage.xml
