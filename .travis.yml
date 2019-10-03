@@ -1,0 +1,10 @@
+language: python
+matrix:
+        include:
+                - python: 3.7
+
+script: 
+  - pip install -r requirements.txt
+  - coverage run robot.py test --builtin
+  - coverage xml
+  - python-codacy-coverage -r coverage.xml

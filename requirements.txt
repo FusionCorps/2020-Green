@@ -1,0 +1,6 @@
+pyfrc
+requests
+flask
+robotpy-ctre
+coverage
+codacy-coverage
