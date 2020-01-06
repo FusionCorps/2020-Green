@@ -9,7 +9,13 @@ class Chassis(Subsystem):
 
         self.l_controller = CANSparkMax(0, MotorType.kBrushless)
         self.r_controller = CANSparkMax(1, MotorType.kBrushless)
+
         self.drive = DifferentialDrive(self.l_controller, self.r_controller)
 
-    def joystick_drive(self, x_axis: int, y_axis: int) -> None:
+    def joystick_drive(self, x_axis: float, y_axis: float) -> None:
         self.drive.curvatureDrive(x_axis, y_axis, True)
+
+    def initDefaultCommand(self):
+        from commands.joystick_drive import JoystickDrive
+
+        self.setDefaultCommand(JoystickDrive())

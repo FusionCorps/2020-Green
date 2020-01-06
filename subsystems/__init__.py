@@ -1,3 +1,3 @@
 from .chassis import Chassis
 
-chassis = Chassis()
+i_chassis = Chassis()
