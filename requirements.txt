@@ -5,3 +5,5 @@ robotpy-ctre
 coverage
 codacy-coverage
 robotpy-rev
+black
+pylint
