@@ -2,9 +2,9 @@ language: python
 matrix:
         include:
                 - python: 3.8.1
-
+install:
+        - pip install -r travis_requirements.txt
 script: 
-  - pip install -r travis_requirements.txt
-  - coverage run robot.py test --builtin
-  - coverage xml
-  - python-codacy-coverage -r coverage.xml
+        - coverage run robot.py test --builtin
+        - coverage xml
+        - python-codacy-coverage -r coverage.xml
