@@ -47,11 +47,11 @@ class Chassis(Subsystem):
         self.last_world_linear_accel_z = curr_world_linear_accel_z
         currentJerkZ = curr_world_linear_accel_z - self.last_world_linear_accel_z
 
-        totalJerk = math.sqrt((currentJerkZ**2 + currentJerkY**2 + currentJerkX**2))
+        magnitudeJerk = math.sqrt((currentJerkZ**2 + currentJerkY**2 + currentJerkX**2))
 
         self.collision_timer -= 1
 
-        if totalJerk >  Chassis.K_COLLISION_THRESHOLD_DELTA_G: 
+        if magnitudeJerk >  Chassis.K_COLLISION_THRESHOLD_DELTA_G: 
             self.collision_detected = True
             self.collision_timer = 3
 
