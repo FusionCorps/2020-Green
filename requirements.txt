@@ -2,9 +2,9 @@ pyfrc
 requests
 flask
 robotpy-ctre
-coverage
-codacy-coverage
 robotpy-rev
+robotpy-navx
+coverage
 black
 pylint
 smbus2
