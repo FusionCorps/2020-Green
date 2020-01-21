@@ -15,6 +15,7 @@ from wpilib.command import Subsystem
 from wpilib.drive import DifferentialDrive
 from wpilib import Timer
 
+
 class JerkSample:
     """
     A sample of the chassis jerk from the navX AHRS sensor.
@@ -25,7 +26,7 @@ class JerkSample:
     ):
         """
         Construct a JerkSample
-        
+
         Args:
             x_jerk (float): x-axis jerk
             y_jerk (float): y-axis jerk
@@ -142,7 +143,7 @@ class Chassis(Subsystem):
     def collided(self) -> bool:
         """
         Whether the chassis has detected a collision recently or not
-        
+
         Returns:
             bool: whether a collision has occurred
         """
@@ -151,11 +152,8 @@ class Chassis(Subsystem):
             return self._has_collided
 
     def _update_collisions(self) -> None:
-
         with self._lock:
             self._poll_jerk()
-
-            
 
             for i in range(len(self._jerk_samples)):
                 try:
@@ -168,20 +166,17 @@ class Chassis(Subsystem):
                                 self._jerk_samples[-i - 2 :],
                             )
                         )  # Sets collision flag to whether all the jerk samples are above the threshold
-                        if self._has_collided == True:
+                        if self._has_collided:
                             self._timer.start()
 
                         if self._timer.hasPeriodPassed(0.02):
-                            self._jerk_samples.clear()
-                            self._has_collided == False:
+                            self._has_collided = False
                             self._timer.reset()
-
-
 
                         break  # Breaks before searching whole sample list unnecessarily
                 except IndexError:
                     self._has_collided = False
-                
+
         sleep(Chassis.JERK_POLL_RATE)  # Allows main thread to read from variables
 
     def _poll_jerk(self) -> None:
