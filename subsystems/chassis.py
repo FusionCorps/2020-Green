@@ -13,6 +13,7 @@ from navx import AHRS
 from wpilib import SPI
 from wpilib.command import Subsystem
 from wpilib.drive import DifferentialDrive
+from wpilib import Timer
 
 
 class JerkSample:
@@ -25,7 +26,7 @@ class JerkSample:
     ):
         """
         Construct a JerkSample
-        
+
         Args:
             x_jerk (float): x-axis jerk
             y_jerk (float): y-axis jerk
@@ -95,6 +96,7 @@ class Chassis(Subsystem):
         """
         Collision Detection
         """
+        self._timer = Timer()
         self._ahrs = AHRS(SPI.Port.kMXP)
 
         self._jerk_last_poll = datetime.now()
@@ -141,7 +143,7 @@ class Chassis(Subsystem):
     def collided(self) -> bool:
         """
         Whether the chassis has detected a collision recently or not
-        
+
         Returns:
             bool: whether a collision has occurred
         """
@@ -163,7 +165,14 @@ class Chassis(Subsystem):
                                 lambda j: j.mag_jerk > Chassis.COLLISION_THRESHOLD,
                                 self._jerk_samples[-i - 2 :],
                             )
-                        )  # Sets collision flag to whether all the jerk samples are above the trheshold
+                        )  # Sets collision flag to whether all the jerk samples are above the threshold
+                        if self._has_collided:
+                            self._timer.start()
+
+                        if self._timer.hasPeriodPassed(0.02):
+                            self._has_collided = False
+                            self._timer.reset()
+
                         break  # Breaks before searching whole sample list unnecessarily
                 except IndexError:
                     self._has_collided = False
