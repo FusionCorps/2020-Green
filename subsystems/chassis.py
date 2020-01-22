@@ -103,6 +103,8 @@ class Chassis(Subsystem):
         self._jerk_samples: List[JerkSample] = []
 
         self._has_collided = False
+        self._block_triggered = False
+        self.block_count = 0
 
         self._collisions = (
             []
@@ -157,15 +159,23 @@ class Chassis(Subsystem):
 
             for i in range(len(self._jerk_samples)):
                 try:
-                    if self._jerk_samples[-1] - self._jerk_samples[-i - 2] > timedelta(
+                    if self._jerk_samples[-i].collection_time - self._jerk_samples[-i - 2].collection_time > timedelta(
                         seconds=Chassis.COLLISION_PEAK_TIME
                     ):  # Measurement time from sample to sample must be above the PEAK_TIME constant
-                        self._has_collided = all(
+                        self._block_triggered = all(
                             map(
                                 lambda j: j.mag_jerk > Chassis.COLLISION_THRESHOLD,
                                 self._jerk_samples[-i - 2 :],
                             )
                         )  # Sets collision flag to whether all the jerk samples are above the threshold
+                        
+                        self.block_count += 1
+
+                        if self.block_count > 3:
+                            self._has_collided = True
+                        else:
+                            self.block_count -= 2
+                        
                         if self._has_collided:
                             self._timer.start()
 
