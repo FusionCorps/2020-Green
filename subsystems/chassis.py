@@ -159,9 +159,15 @@ class Chassis(Subsystem):
 
             for i in range(len(self._jerk_samples)):
                 try:
-                    if self._jerk_samples[-i].collection_time - self._jerk_samples[-i - 2].collection_time > timedelta(
+                    
+                    self._block_time = 0
+                    self._block_size = 0
+                    while self._block_time < self.JERK_POLL_RATE:
+                        self._block_time = self._jerk_samples[-i].collection_time - self._jerk_samples[-i - self._block_size].collection_time
+                        self._block_size += 1
+                    if self._jerk_samples[-i].collection_time - self._jerk_samples[-i - self._block_size].collection_time> timedelta(
                         seconds=Chassis.COLLISION_PEAK_TIME
-                    ):  # Measurement time from sample to sample must be above the PEAK_TIME constant
+                    )   :  # Measurement time from sample to sample must be above the PEAK_TIME constant
                         self._block_triggered = all(
                             map(
                                 lambda j: j.mag_jerk > Chassis.COLLISION_THRESHOLD,
@@ -183,9 +189,13 @@ class Chassis(Subsystem):
                             self._has_collided = False
                             self._timer.reset()
 
-                        break  # Breaks before searching whole sample list unnecessarily
+                            break  # Breaks before searching whole sample list unnecessarily
+                        
+
                 except IndexError:
                     self._has_collided = False
+
+                   
 
         sleep(Chassis.JERK_POLL_RATE)  # Allows main thread to read from variables
 
