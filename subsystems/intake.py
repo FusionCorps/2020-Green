@@ -1,9 +1,9 @@
 from ctre import WPI_TalonFX
 from wpilib.command import Subsystem
-from wpilib import TimedRobot
+from wpilib import IterativeRobot
 from wpilib import PIDController
 
-class Robot(TimedRobot):
+class Robot(IterativeRobot):
     def __init__(self):
         super.__init__("Robot")
 
