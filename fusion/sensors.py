@@ -12,12 +12,12 @@ from typing import Dict, List, Tuple, Type
 
 from wpilib import DigitalInput
 
-# from navx import AHRS
-# from wpilib import SPI, Timer
+from navx import AHRS
+from wpilib import SPI, Timer
 
 
-class ReportError(Enum, Exception):
-    INVALID_CRITERIA = "INVALID_CRITERIA"
+class ReportError(Exception):
+    pass
 
 
 class Report(ABC):
@@ -127,7 +127,7 @@ class HopperService(SensorService, th.Thread):
         self.bend_sensor = DigitalInput(self.DIO_BEND_SENSOR)
         self.chute_sensor = DigitalInput(self.DIO_CHUTE_SENSOR)
 
-        self.sensors: List[DigitalInput] = [
+        self.sensors = [
             self.hall_sensor,
             self.bend_sensor,
             self.chute_sensor,
@@ -141,45 +141,43 @@ class HopperService(SensorService, th.Thread):
         pass
 
 
-# class CollisionService(SensorService, th.Thread):
-#     """
-#     Sensor Service tracking collision events using the NavX AHRS sensor
-#     collection.
-#     """
+class CollisionService(SensorService, th.Thread):
+    """
+    Sensor Service tracking collision events using the NavX AHRS sensor
+    collection.
+    """
 
-#     POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
+    POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
 
-#     class CollisionReport(Report):
-#         COLLISION_THRESHOLD = 0.5  # G -- Threshold for collisions
-#         COLLISION_PEAK_TIME = 0.01  # s -- Amt. of time measurements must be above threshold before registering a collision
+    class CollisionReport(Report):
+        COLLISION_THRESHOLD = 0.5  # G -- Threshold for collisions
+        COLLISION_PEAK_TIME = 0.01  # s -- Amt. of time measurements must be above threshold before registering a collision
 
-#         def __init__(self, service: SensorService):
-#             super().__init__(self)
+        def __init__(self, service: SensorService):
+            super().__init__(self)
 
-#             #  TODO: Collision Detection code goes here
-#             for a in service._x_jerk_samples:
-#                 pass
+            #  TODO: Collision Detection code goes here
+            for a in service._x_jerk_samples:
+                pass
 
-#         def is_old(self) -> bool:
-#             return (current_time := datetime.now()) - self.collection_time < timedelta(
-#                 seconds=1
-#             )
+        def is_old(self) -> bool:
+            return datetime.now() - self.collection_time < timedelta(seconds=1)
 
-#     def __init__(self):
-#         super(CollisionService, self).__init__()
+    def __init__(self):
+        super(CollisionService, self).__init__()
 
-#         self._ahrs = AHRS(SPI.Port.kMXP)
+        self._ahrs = AHRS(SPI.Port.kMXP)
 
-#         # Arrays used because samples are ordered and of same type -- faster
-#         self._x_jerk_samples: array = array("f")
-#         self._y_jerk_samples: array = array("f")
-#         self._z_jerk_samples: array = array("f")
+        # Arrays used because samples are ordered and of same type -- faster
+        self._x_jerk_samples: array = array("f")
+        self._y_jerk_samples: array = array("f")
+        self._z_jerk_samples: array = array("f")
 
-#         self._time_jerk_samples: List[datetime] = None
+        self._time_jerk_samples: List[datetime] = None
 
-#         self._x_last_acceleration: float = 0.0
-#         self._y_last_acceleration: float = 0.0
-#         self._z_last_acceleration: float = 0.0
+        self._x_last_acceleration: float = 0.0
+        self._y_last_acceleration: float = 0.0
+        self._z_last_acceleration: float = 0.0
 
-#     def update(self):
-#         pass
+    def update(self):
+        pass
