@@ -5,7 +5,7 @@ from threading import RLock, Thread
 from time import sleep
 from typing import List
 
-from ctre import WPI_TalonSRX
+from ctre import WPI_TalonFX
 
 
 from wpilib import SPI
