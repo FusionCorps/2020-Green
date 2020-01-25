@@ -11,4 +11,4 @@ class Robot(IterativeRobot):
         self.PIDControllerBottom = PIDController(1.0, 0.0, 0.0)
 
     def teleopInit(self):
-        self.motorContollerBottom.set(self.PIDControllerBottom.calculate(self.motorContollerBottom.getSensorCollection().getIntegatedSensorVelocity()))
+        self.motorContollerBottom.set(self.PIDControllerBottom.get(self.motorContollerBottom.getSensorCollection().getIntegatedSensorVelocity()))
