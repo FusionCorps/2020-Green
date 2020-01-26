@@ -23,6 +23,9 @@ class Intake(Subsystem):
         VERT_BELT_MOTOR_ID = 13
         HORIZ_BELT_MOTOR_ID = 14
 
+        self.belt_velocity_vert = 409 #default is two rotations per second (120 RPM)
+        self.belt_velocity_horiz = 409 #default is two rotations per second (120 RPM)
+
         self.is_loading = False
 
         self.ball_count_horiz = 0
@@ -44,10 +47,25 @@ class Intake(Subsystem):
         self.break_beam_top.direction = digitalio.Direction.INPUT
         self.break_beam_top.pull = digitalio.Pull.UP
 
+        self.beltControllerVert = WPI_TalonFX(VERT_BELT_MOTOR_ID)
+        self.beltControllerHoriz = WPI_TalonFX(HORIZ_BELT_MOTOR_ID)
+
         
     
     def load_to_top(self):
         while self.break_beam_top.value:
+            self.beltControllerVert.set(self.belt_velocity_vert)
+            break
+    
+    def load_to_corner(self):
+        while self.break_beam_horiz_corner.value:
+            self.beltControllerVert.set(self.belt_velocity_horiz)
+
+'''
+To finish - write corner handoff code to add 1 in. buffer between balls in 
+vertical chute. 
+''' 
+
 
         
 
