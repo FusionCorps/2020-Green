@@ -2,6 +2,8 @@ import board
 import digitalio
 from wpilib.command import Subsystem
 from ctre import WPI_TalonFX
+from enum import Enum
+
  
 # Create digital input with pull-up resistor on pin D5
 # for break beam sensor.
@@ -50,8 +52,22 @@ class Intake(Subsystem):
         self.beltControllerVert = WPI_TalonFX(VERT_BELT_MOTOR_ID)
         self.beltControllerHoriz = WPI_TalonFX(HORIZ_BELT_MOTOR_ID)
 
+
+
+        class cornerState(Enum):
+            BALL_READY_SPACE_AVAILABLE = 0
+            BALL_READY_NO_SPACE = 1
+            NO_BALL_SPACE_AVAILAbLE = 2
+            NO_BALL_NO_SPACE = 3
         
-    
+        class chuteState(Enum):
+            TUBE_FULL = 0
+            TUBE_NOT_FULL = 1
+
+        
+        self.vert_capacity = Intake.chuteState.TUBE_NOT_FULL
+        self.corner_state = Intake.cornerState.NO_BALL_SPACE_AVAILABLE
+        
     def load_to_top(self):
         while self.break_beam_top.value:
             self.beltControllerVert.set(self.belt_velocity_vert)
@@ -61,14 +77,42 @@ class Intake(Subsystem):
         while self.break_beam_horiz_corner.value:
             self.beltControllerVert.set(self.belt_velocity_horiz)
 
+    def set_corner_state(self):
+        if not self.break_beam_horiz_corner.value and self.break_beam_vert_corner.value:
+            self.corner_state = Intake.cornerState.BALL_READY_SPACE_AVAILABLE
+        elif self.break_beam_horiz_corner.value and self.break_beam_vert_corner.value:
+            self.corner_state = Intake.cornerState.NO_BALL_SPACE_AVAILABLE
+        elif self.break_beam_horiz_corner.value and not self.break_beam_vert_corner.value:
+            self.corner_state = Intake.cornerState.NO_BALL_NO_SPACE
+        elif not self.break_beam_horiz_corner.value and not self.break_beam_vert_corner.value:
+            self.corner_state = Intake.cornerState.BALL_READY_NO_SPACE
+
+    def check_vert_capacity(self):
+        if not self.break_beam_top.value:
+            self.vert_capacity = Intake.chuteState.TUBE_NOT_FULL
+        else:
+            self.vert_capacity = Intake.chuteState.TUBE_FULL
+    
+    def get_state(self):
+        return self.corner_state, self.vert_capacity
+    
+    def corner_feed(self):
+        if self.vert_capacity == Intake.chuteState(0) or self.corner_state == Intake.cornerState(1):
+            if self.break_beam_horiz_corner.value:
+                self.beltControllerHoriz.set(self.belt_velocity_horiz)
+        else:
+            if self.corner_state == Intake.cornerState(0):
+                self.beltControllerHoriz.set(self.belt_velocity_horiz)
+                self.beltControllerVert.set(self.belt_velocity_horiz)
+            elif self.break_beam_horiz_corner.value:
+                self.beltControllerHoriz.set(self.belt_velocity_horiz)
+
+    
+
+
+
+
 '''
 To finish - write corner handoff code to add 1 in. buffer between balls in 
 vertical chute. 
 ''' 
-
-
-        
-
-        
-
-
