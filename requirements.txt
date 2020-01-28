@@ -1,11 +1,9 @@
 pyfrc
-requests
-flask
 robotpy-ctre
 coverage
-codacy-coverage
 robotpy-rev
 black
 pylint
 smbus2
 pygame
+robotpy-commands-v1
