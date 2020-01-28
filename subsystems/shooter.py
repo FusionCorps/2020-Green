@@ -18,6 +18,8 @@ class Shooter(Subsystem):
     PID_D_TALON_LEFT = 0.0
     PID_F_TALON_LEFT = 0.0
 
+    MAX_VELOCITY = 26000
+
     class State(enum.Enum):
         STOPPED = 0  # Wheel stopped
         SPOOLING = 1  # Wheel speeding up
@@ -38,23 +40,23 @@ class Shooter(Subsystem):
         self._talon_l = ctre.WPI_TalonFX(Shooter.ID_TALON_LEFT)
         self._talon_r = ctre.WPI_TalonFX(Shooter.ID_TALON_RIGHT)
 
-        self._talon_l.setInverted(True)  # Left motor mounted opposite Right
+        self._talon_l.setInverted(True)  # Left motor mounted opposite right one
         self._talon_l.configSelectedFeedbackSensor(
             ctre.FeedbackDevice.CTRE_MagEncoder_Relative
-        )
-        self._talon_l.setSensorPhase(True)  # Encoder feedback should read positive
+        )  # Magnetic encoder should be relative to starting measurement point
+        self._talon_l.setSensorPhase(
+            True
+        )  # Encoder feedback should read positive even if left motor is flipped
 
-        self._talon_r.follow(self._talon_l)
+        self._talon_r.follow(self._talon_l)  # Makes left motor the master controller
 
         # TODO Check what Peak Nominal and Output configs do and add them
 
+        """PIDF Constants"""
         self._talon_l.config_kP(Shooter.PID_P_TALON_LEFT)
         self._talon_l.config_kI(Shooter.PID_I_TALON_LEFT)
         self._talon_l.config_kD(Shooter.PID_D_TALON_LEFT)
 
-        self._talon_l.setSelectedSensorPosition(0)
+        self._talon_l.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
-    def set_state(self, state: Shooter.State):
-        if state == self._state:
-            return
 
