@@ -106,6 +106,7 @@ class SensorManager(mp.Process):
         self._reports = mpq.Queue(maxsize=1000)  # Arbitrary limit
         self._logger = logging.getLogger("SensorManager")
         self._is_killed = mpq.Event()
+        self._mpq_lock = mpq.RLock()
 
     def start_services(self):
         """
@@ -124,22 +125,25 @@ class SensorManager(mp.Process):
         Add a new service to be immediately run. If the service exists already,
         add a new instance of that service to the list of running services.
         """
-        try:
-            self._services[service].append(service_thread := service())
-        except KeyError:
-            self._services[service] = [service_thread := service()]
-        finally:
-            service_thread.start()
+        with self._mpq_lock:
+            try:
+                self._services[service].append(service_thread := service())
+            except KeyError:
+                self._services[service] = [service_thread := service()]
+            finally:
+                service_thread.start()
 
     def _poll_reports(self):
         while True:
             if self._is_killed.is_set():
+                self._kill_services()  # Kill all the services before killing self
                 return
 
-            queues = [
-                queue
-                for queue in (service._queue for service in self._services.values())
-            ]
+            with self._mpq_lock:
+                queues = [
+                    queue
+                    for queue in (service._queue for service in self._services.values())
+                ]
 
             for q in queues:
                 while True:
@@ -149,7 +153,8 @@ class SensorManager(mp.Process):
                         break
                     except Full:
                         self._logger.error(
-                            f"Manager Queue has exceeded its item limit of {self._queue.maxsize}! Removing items until space has cleared! Removing {str(self._reports.get())}!"
+                            f"Manager Queue has exceeded its item limit of {self._queue.maxsize}!"
+                            f"Removing items until space has cleared: {str(self._reports.get())}!"
                         )
 
     def kill(self):
@@ -158,16 +163,18 @@ class SensorManager(mp.Process):
         """
         self._is_killed.set()
 
+    def _kill_services(self):
+        with self._mpq_lock:
+            for service in self._services.values():
+                service.kill()  # Sets kill event flag to signal service should wrap up
+                service.join()  # Blocks until service is dead
+
     def begin_managing(self):
         self.start_services()
         self._run_loop()
 
     def _run_loop(self):
-        while not self._is_killed.is_set():
-            self._poll_reports()
-        else:
-            for service in self._services.values():
-                service.kill()
+        self._poll_reports()
 
 
 class TestService(SensorService):
