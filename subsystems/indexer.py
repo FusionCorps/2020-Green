@@ -50,7 +50,7 @@ class Indexer(Subsystem):
     
     def get_vert_state(self):
         '''Check sensors and return state: Vertical'''
-        if self.mid_beam.value:
+        if self.top_beam.value:
             self.vert_state = Indexer.VerticalIndexerState.SPACE_AVAILABLE
         else:
             self.vert_state = Indexer.VerticalIndexerState.NO_SPACE
@@ -60,7 +60,7 @@ class Indexer(Subsystem):
     
     def set_vert_state(self):
         '''Check sensors and return state: Vertical'''
-        if self.mid_beam.value:
+        if self.top_beam.value:
             self.vert_state = Indexer.VerticalIndexerState.SPACE_AVAILABLE
         else:
             self.vert_state = Indexer.VerticalIndexerState.NO_SPACE
@@ -117,6 +117,25 @@ class Indexer(Subsystem):
             self.set_horiz_state()
             self.set_vert_state()
             if self.vert_state == Indexer.VerticalIndexerState.SPACE_AVAILABLE:
+                while self.top_beam.value:
+                    self.set_vert_belt(True)
+                self.set_vert_belt(False)
+                self.set_horiz_state()
+                self.set_vert_state()
+    
+    def load_to_corner(self, active:bool):
+        '''Load balls in horizontal tube to the corner
+        Horizontal state should start in ball not available'''
+        if active:
+            self.set_horiz_state()
+            if self.horiz_state == Indexer.HorizontalIndexerState.BALL_NOT_READY:
+                while self.bottom_beam.value:
+                    self.set_horiz_belt(True)
+                self.set_horiz_belt(False)
+                self.set_horiz_state()
+                self.set_vert_state()
+
+    
 
 
 
