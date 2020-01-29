@@ -105,8 +105,8 @@ class SensorManager(mp.Process):
 
         self._reports = mpq.Queue(maxsize=1000)  # Arbitrary limit
         self._logger = logging.getLogger("SensorManager")
-        self._is_killed = mpq.Event()
-        self._mpq_lock = mpq.RLock()
+        self._is_killed = mp.Event()
+        self._mp_lock = mp.RLock()
 
     def start_services(self):
         """
@@ -125,7 +125,7 @@ class SensorManager(mp.Process):
         Add a new service to be immediately run. If the service exists already,
         add a new instance of that service to the list of running services.
         """
-        with self._mpq_lock:
+        with self._mp_lock:
             try:
                 self._services[service].append(service_thread := service())
             except KeyError:
@@ -139,7 +139,7 @@ class SensorManager(mp.Process):
                 self._kill_services()  # Kill all the services before killing self
                 return
 
-            with self._mpq_lock:
+            with self._mp_lock:
                 queues = [
                     queue
                     for queue in (service._queue for service in self._services.values())
@@ -164,7 +164,7 @@ class SensorManager(mp.Process):
         self._is_killed.set()
 
     def _kill_services(self):
-        with self._mpq_lock:
+        with self._mp_lock:
             for service in self._services.values():
                 service.kill()  # Sets kill event flag to signal service should wrap up
                 service.join()  # Blocks until service is dead
