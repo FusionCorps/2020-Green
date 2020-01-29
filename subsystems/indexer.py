@@ -58,7 +58,7 @@ class Indexer(Subsystem):
         return self.vert_state
 
     
-    def get_vert_state(self):
+    def set_vert_state(self):
         '''Check sensors and return state: Vertical'''
         if self.mid_beam.value:
             self.vert_state = Indexer.VerticalIndexerState.SPACE_AVAILABLE
@@ -98,10 +98,29 @@ class Indexer(Subsystem):
     def corner_pass(self, active:bool):
         '''To be called when a ball is available and space is avalilable.
         After there will be may or may not be space and there may or may not be a ball available'''
-        self.set_horiz_state()
-        self.set_vert_state()
-        if self.horiz_state == Indexer.HorizontalIndexerState.BALL_READY and self.vert_state == Indexer.VerticalIndexerState.SPACE_AVAILABLE:
-            while not self.bottom_beam.value:
+        if active:
+            self.set_horiz_state()
+            self.set_vert_state()
+            if self.horiz_state == Indexer.HorizontalIndexerState.BALL_READY and self.vert_state == Indexer.VerticalIndexerState.SPACE_AVAILABLE:
+                while not self.bottom_beam.value:
+                    self.set_horiz_belt(True)
+                    self.set_vert_belt(True)
+                self.set_horiz_belt(False)
+                self.set_vert_belt(False)
+                self.set_horiz_state()
+                self.set_vert_state()
+        
+    def load_to_top(self, active:bool):
+        '''Load balls in vertical chute to top regardless of horizontal state
+        Vertical state should start with available space and end without available space'''
+        if active:
+            self.set_horiz_state()
+            self.set_vert_state()
+            if self.vert_state == Indexer.VerticalIndexerState.SPACE_AVAILABLE:
+
+
+
+        
 
 
 
