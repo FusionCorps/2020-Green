@@ -1,7 +1,7 @@
 from wpilib.command import Subsystem
 from enum import Enum
 from ctre import WPI_TalonFX, ControlMode
-import digitalio
+from wpilib import DigitalInput
 from typing import Optional
 
 class Indexer(Subsystem):
@@ -32,17 +32,11 @@ class Indexer(Subsystem):
         self.horiz_belt_controller = WPI_TalonFX(Indexer.TALON_HORIZ_ID)
         self.vert_belt_controller = WPI_TalonFX(Indexer.TALON_VERT_ID)
 
-        self.top_beam = digitalio.DigitalInOut(Indexer.TOP_BEAM_ID)
-        self.top_beam.direction = digitalio.Direction.INPUT
-        self.top_beam.pull = digitalio.Pull.UP
+        self.top_beam = DigitalInput(Indexer.TOP_BEAM_ID)
 
-        self.mid_beam = digitalio.DigitalInOut(Indexer.VERT_BEND_BEAM_ID)
-        self.mid_beam.direction = digitalio.Direction.INPUT
-        self.mid_beam.pull = digitalio.Pull.UP
+        self.mid_beam = DigitalInput(Indexer.VERT_BEND_BEAM_ID)
 
-        self.bottom_beam = digitalio.DigitalInOut(Indexer.HORIZ_BEND_BEAM_ID)
-        self.bottom_beam.direction = digitalio.Direction.INPUT
-        self.bottom_beam.pull = digitalio.Pull.UP
+        self.bottom_beam = DigitalInput(Indexer.HORIZ_BEND_BEAM_ID)
 
         self.is_on = True
 
@@ -62,7 +56,15 @@ class Indexer(Subsystem):
             self.vert_state = Indexer.VerticalIndexerState.NO_SPACE
         
         return self.vert_state
+
     
+    def get_vert_state(self):
+        '''Check sensors and return state: Vertical'''
+        if self.mid_beam.value:
+            self.vert_state = Indexer.VerticalIndexerState.SPACE_AVAILABLE
+        else:
+            self.vert_state = Indexer.VerticalIndexerState.NO_SPACE
+
     def get_horiz_state(self):
         '''Check sensors and return state: Horizontal'''
 
@@ -71,6 +73,15 @@ class Indexer(Subsystem):
         else:
             self.horiz_state = Indexer.HorizontalIndexerState.BALL_READY
         return self.horiz_state
+
+    def set_horiz_state(self):
+        '''Check sensors and set state: Horizontal'''
+
+        if self.bottom_beam.value:
+            self.horiz_state = Indexer.HorizontalIndexerState.BALL_NOT_READY
+        else:
+            self.horiz_state = Indexer.HorizontalIndexerState.BALL_READY
+        
 
     def set_horiz_belt(self, active:bool, velocity: Optional[int] = None)      :
         if active:
@@ -84,21 +95,16 @@ class Indexer(Subsystem):
         else:
             self.horiz_belt_controller.set(ControlMode.Velocity, 0)
 
-    def load_to_top(self, active:bool):
-        self.loading = True
-        while self.loading:
-            if self.horiz_state is Intake.HorizontalIndexerState.BALL_READY and self.VerticalIndexerState is Intake.VerticalIndexerState.SPACE_AVAILABLE:
-                set_horiz_belt(True)
-                set_vert_belt(True)
-            if self.horiz_state is Intake.HorizontalIndexerState.BALL_READY and self.VerticalIndexerState is not Intake.VerticalIndexerState.SPACE_AVAILABLE:
-                set_horiz_belt(False)
-                set_vert_belt(True)
-            if self.horiz_state is not Intake.HorizontalIndexerState.BALL_READY and self.VerticalIndexerState is Intake.VerticalIndexerState.SPACE_AVAILABLE:
-                set_horiz_belt(True)
-                set_vert_belt(False)
-            if self.horiz_state is not Intake.HorizontalIndexerState.BALL_READY and self.VerticalIndexerState is not Intake.VerticalIndexerState.SPACE_AVAILABLE:
-                set_horiz_belt(True)
-                set_vert_belt(True)
+    def corner_pass(self, active:bool):
+        '''To be called when a ball is available and space is avalilable.
+        After there will be may or may not be space and there may or may not be a ball available'''
+        self.set_horiz_state()
+        self.set_vert_state()
+        if self.horiz_state == Indexer.HorizontalIndexerState.BALL_READY and self.vert_state == Indexer.VerticalIndexerState.SPACE_AVAILABLE:
+            while not self.bottom_beam.value:
+
+
+
             
     def stop_loading(self):
         self.loading = False
