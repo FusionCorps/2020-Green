@@ -8,9 +8,9 @@ from wpilib.buttons import JoystickButton
 class XBoxController(Joystick):
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(XBoxController, cls).__new__(cls)
+            cls._instance = super(XBoxController, cls).__new__(cls, *args, **kwargs)
         return cls._instance
 
     def __init__(self, port: int):
