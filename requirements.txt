@@ -2,6 +2,7 @@ pyfrc
 robotpy-ctre
 robotpy-rev
 robotpy-commands-v1
+coverage
 smbus2
 pygame
 coverage
