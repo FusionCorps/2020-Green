@@ -1,16 +1,17 @@
-import wpilib
-from time import sleep
 import logging
 import multiprocessing as mp
 import multiprocessing.queues as mpq
 import threading as th
-from abc import ABC, abstractmethod, ABCMeta
+from abc import ABC, ABCMeta, abstractmethod
 from array import array
 from datetime import datetime, timedelta
 from enum import Enum
 from inspect import signature
 from queue import Empty, Full, Queue
+from time import sleep
 from typing import Dict, List, Tuple, Type
+
+import wpilib
 
 # from navx import AHRS
 # from wpilib import SPI, DigitalInput, Timer
