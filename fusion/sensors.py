@@ -121,6 +121,7 @@ class Manager(mp.Process):
         """
         Start threads for all registered services.
         """
+
         with self._mp_lock:
             for service in self._services.keys():
                 try:
