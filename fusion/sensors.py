@@ -12,12 +12,32 @@ from time import sleep
 from typing import Dict, List, Tuple, Type
 
 import wpilib
-
-# from navx import AHRS
-# from wpilib import SPI, DigitalInput, Timer
+from navx import AHRS
+from wpilib import SPI, DigitalInput, Timer
 
 
 class ReportError(Exception):
+    """An Exception that indicates a Report cannot be generated.
+
+    An Exception used to indicate that a Report cannot
+    be generated, usually because of insufficient information
+    or because the provided values do not satisfy the
+    reporting criteria.
+
+    Args:
+        service (str): The service that generated the Exception
+        msg (str): Human-readable string describing the Exception
+
+    Attributes:
+        service (str): The service that generated the Exception
+        msg (str): Human-readable string describing the Exception
+
+    Note:
+        ReportError Exceptions should be raised in the __init__
+        method of a Report when that Report is not ready to be
+        generated.
+    """
+
     def __init__(self, service: str, msg: str):
         super().__init__()
 
@@ -26,40 +46,51 @@ class ReportError(Exception):
 
 
 class Report(ABC):
-    """
+    """Object that encodes essential information into an event.
+
     Abstract Base Class that encodes common Report behavior.
+
     """
 
     @abstractmethod
     def is_old(self) -> bool:
-        """
-        Check whether this Report should be flagged for deletion.
+        """Check whether this Report should be flagged for deletion.
+
+        Returns:
+            bool: Whether this Report has expired and should be deleted.
         """
         pass
 
 
-class SensorService(ABC, th.Thread):
-    """
-    An ABC implementing common functionality shared between Sensor Services.
+class Service(ABC, th.Thread):
+    """A sensor or collection of sensors that share a common purpose.
+
+    A SensorService is a Thread that is managed and run by the `SensorManager`.
+
+    Note:
+        Each service must be registered with the `SensorManager` before
+        they are run.
     """
 
     def __init__(self):
         super().__init__(target=self._process)
 
         self._last_poll: datetime = None  # Last sensor update
-        self._queue: Queue = Queue(100)
-        self._is_killed = th.Event()
+        self._queue: Queue = Queue(100)  # Arbitrary limit of 100 elements
+        self._is_killed = th.Event()  # If set, Service will be terminated ASAP
 
     @abstractmethod
     def update(self):
-        """
-        Defines how the sensors collect data and store it.
+        """Defines how new data should be collected and stored from sensor(s).
+
+        This method is automatically called by the `SensorManager`. All
+        repeating update steps should be contained here.
         """
         pass
 
     def _process(self):
-        """
-        Defines how data is evaluated and Reports are added to queues.
+        """An internal method that checks for Reports and adds them if
+        possible.
         """
         while True:
             if self._is_killed.is_set():
@@ -85,30 +116,42 @@ class SensorService(ABC, th.Thread):
 
 
 class Manager(mp.Process):
-    """
+    """Manages other Services by updating data and aggregating Reports.
+
     A Process that Manages the other Sensors, making sure they are
     called on time. Reports their status to CommandBased robot.
+
+    Args:
+        services (List[Type[Service]]): A list of the Service classes
+            that will be registered from the start.
+
+    Note:
+        `Manager` is a Singleton.
     """
 
-    _services: Dict[Type[SensorService], List[th.Thread]] = None
     _instance = None
 
-    """
-    Reports are classes defined within a Service class that implement
-    the Report ABC above.
-    """
-    _reports: Dict[Type[SensorService], List[Report]] = None
+    # A dictionary mapping Service classes to their Threads
+    _services: Dict[Type[Service], List[th.Thread]] = None
+    # A dictionary mapping Service classes to their Reports
+    _reports: Dict[Type[Service], List[Report]] = None
+
+    # Multiprocessing queue that sends objects to Commandbased side
+    _commandbased_queue: mpq.Queue = None
+
+    # Multiprocessing queue that receives objects from Commandbased side
+    _request_queue: mpq.Queue = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(Manager, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, services: List[Type[SensorService]]):
+    def __init__(self, services: List[Type[Service]]):
         super().__init__(target=self.manage)
 
-        self._services: Dict[Type[SensorService], List[th.Thread]] = {}
-        self._reports: Dict[Type[SensorService], List[Report]] = {}
+        self._services: Dict[Type[Service], List[th.Thread]] = {}
+        self._reports: Dict[Type[Service], List[Report]] = {}
 
         for s in services:
             self._services[s] = []
@@ -132,7 +175,7 @@ class Manager(mp.Process):
                     self._reports[service_thread] = []
                     service_thread.start()
 
-    def add_service(self, service: Type[SensorService]):
+    def add_service(self, service: Type[Service]):
         """
         Add a new service to be immediately run. If the service exists already,
         add a new instance of that service to the list of running services.
@@ -216,7 +259,7 @@ class Manager(mp.Process):
         return return_list
 
 
-class Tester(SensorService):
+class Tester(Service):
     """
     A Dummy service used to test if everything is working.
     """
