@@ -62,7 +62,8 @@ class Indexer(Subsystem):
         IN_CORNER = 2
         VERTICAL_CORNER = 3
         UNBUFFERED = 4
-        SHOOTING = 5
+        TOP = 5
+        SHOOTING = 6
 
     class FakeBall():
         def __init__(self):
@@ -113,7 +114,12 @@ class Indexer(Subsystem):
     
     def update_balls(self):
         beam_report = Manager().get(IRService.BreakReport)
+        camera_report = Manager().get(Camera.ThresholdReport)
         '''Take beam report and cross check with predicted states'''
+        if len(self.ball_list) == 0:
+            if camera_report:
+                self.ball_list.insert(FakeBall())
+
         if len(self.ball_list) == 1:
             if self.ball_list[0].state != Indexer.BallState.BOTTOM_CORNER and beam_report[0]:
                 self.ball_list[0].state = Indexer.BallState.BOTTOM_CORNER
@@ -121,8 +127,61 @@ class Indexer(Subsystem):
                 self.ball_list[0].state = Indexer.BallState.VERTICAL_CORNER
             elif self.ball_list[0].state != Indexer.BallState.SHOOTING and beam_report[2]:
                 self.ball_list[0].state = Indexer.BallState.SHOOTING
-            '''This is going to be a lot of ugly casework if we don't streamline.
-            If you see this, please try to make this wprk better than finding every case.'''
+            else:
+                self.ball_list[0].state = Indexer.BallState.BUFFERING
+            
+            if camera_report:
+                self.ball_list.insert(FakeBall())
+            
+        elif len(self.ball_list) == 2:
+            if self.ball_list[0].state == Indexer.BallState.ENTERING and self.ball_list[1].state == Indexer.BallState.VERTICAL_CORNER and beam_report == (True, True, False):
+                self.ball_list[0].state = Indexer.BallState.BOTTOM_CORNER
+                self.ball_list[1].state = Indexer.BallState.BOTTOM_CORNER
+            elif self.ball_list[0].state == Indexer.BallState.BOTTOM_CORNER and beam_report == (False, True, False):
+                self.ball_list[0].state = Indexer.BallState.VERTICAL_CORNER
+                self.ball_list[1].state = Indexer.BallState.BUFFERING
+            elif self.ball_list[0].state == Indexer.BallState.VERTICAL_CORNER and beam_report == (False, False, False):
+                self.ball_list[0].state = Indexer.BallState.BUFFERING
+                self.ball_list[1].state = Indexer.BallState.TOP
+            elif self.ball_list[0].state == Indexer.BallState.BUFFERING and beam_report == (False, False, True)
+                self.ball_list[0] = Indexer.BallState.TOP
+                self.ball_list[1] = Indexer.BallState.SHOOTING 
+
+            if camera_report:
+                self.ball_list.insert(FakeBall())
+
+        elif len(self.ball_list) == 3:
+            if self.ball_list[1] == Indexer.BallState.VERTICAL_CORNER and break_report[0]:
+                self.ball_list[0].state = Indexer.BallState.BOTTOM_CORNER
+            elif self.ball_list[0] == Indexer.BallState.BOTTOM_CORNER and not break_report[0] and not break_report[2]:
+                self.ball_list[0] = Indexer.BallState.VERTICAL_CORNER
+                self.ball_list[1] = Indexer.BallState.BUFFERING
+                self.ball_list[2] = Indexer.BallState.TOP
+            elif self.ball_list[0] == Indexer.BallState.BOTTOM_CORNER and not break_report[0] and break_report[2]:
+                self.ball_list[0] = Indexer.BallState.BUFFERING
+                self.ball_list[1] = Indexer.BallState.TOP
+                self.ball_list[2] = Indexer.BallState.SHOOTING
+
+            if camera_report:
+                self.ball_list.insert(FakeBall())
+        elif len(self.ball_list) == 4:
+            if self.ball_list[1] == Indexer.BallState.VERTICAL_CORNER and break_report[0]:
+                self.ball_list[0].state == Indexer.BallState.BOTTOM_CORNER
+            elif self.ball_list[0].state ==Indexer.BallState.BOTTOM_CORNER and not break_report[0]:
+                self.ball_list[0].state = Indexer.BallState.VERTICAL_CORNER
+                self.ball_list[1].state = Indexer.BallState.BUFFERING
+                self.ball_list[2].state = Indexer.BallState.TOP
+                self.ball_list[3].state = Indexer.BallState.SHOOTING
+
+            if camera_report:
+                self.ball_list.insert(FakeBall())
+        
+                    
+            '''
+            This is going to be a lot of ugly casework if we don't streamline.
+            If you see this, please try to make this work better than finding every case.
+            Whoops I accidentally wrote all the code. :(
+            '''
             
 
 
@@ -138,17 +197,3 @@ class Indexer(Subsystem):
             self.horiz_belt_controller.set(ControlMode.Velocity, velocity if velocity is not None else Indexer.MAX_SPEED)
         else:
             self.horiz_belt_controller.set(ControlMode.Velocity, 0)
-
-       
-
-
-    
-
-
-
-
-
-
-
-
-
