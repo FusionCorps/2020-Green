@@ -1,6 +1,6 @@
 from wpilib.command import Subsystem
 from enum import Enum
-from ctre import WPI_TalonFX, ControlMode
+from ctre import WPI_TalonFX, TalonFXControlMode
 from wpilib import DigitalInput
 from typing import Optional
 from fusion.sensors import SensorService, Report, ReportError, Manager
@@ -23,7 +23,7 @@ class IRService(SensorService):
             else:
                 raise ReportError('IRService', 'No change.')
 
-            self.beam_values = (service.bottom_beam_state, service.mid_beam_state, service.top_beam_state)
+            self.beam_values = (service.bottom_beam_state, service.mid_beam_state, service.top_beam_state, service.exit_beam_state)
     
     def __init__(self):
         self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID) 
@@ -58,6 +58,7 @@ class Indexer(Subsystem):
 
 
     TALON_ID = 11
+
  
 
     class BallState(Enum):
@@ -109,6 +110,16 @@ class Indexer(Subsystem):
     def checkTop(self):
         report = Manager().get(IRService.BreakReport)
         return report[2]
+
+    def setBelt(self, velocity:float = 0):
+        # Velocity is in encoder ticks per 100 ms
+        self.belt_controller.set(TalonFXControlMode.velocity, velocity)
+
+
+
+
+
+
     
     
 
