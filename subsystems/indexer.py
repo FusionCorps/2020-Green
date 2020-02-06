@@ -10,8 +10,8 @@ from fusion.sensors import SensorService, Report, ReportError, Manager
 class IRService(SensorService):
     POLL_RATE = 0.002  # s
 
-    HORIZ_BEND_BEAM_ID = "D1"
-    VERT_BEND_BEAM_ID = "D2"
+    ENTRY_BEND_BEAM_ID = "D1"
+    BOTTOM_BEND_BEAM_ID = "D2"
     TOP_BEAM_ID = "D3"
     EXIT_BEAM_ID = "D4"
 
@@ -28,21 +28,30 @@ class IRService(SensorService):
     def __init__(self):
         self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID)
         self._top_beam = DigitalInput(IRService.TOP_BEAM_ID)
-        self._mid_beam = DigitalInput(IRService.END_BEAM_ID)
-        self._bottom_beam = DigitalInput(IRService.HORIZ_BEND_BEAM_ID)
+        self._bottom_beam = DigitalInput(IRService.BOTTOM_BEAM_ID)
+        self._entry_beam = DigitalInput(IRService.ENTRY_BEND_BEAM_ID)
 
-        self.exit_beam_state = None
-        self.top_beam_state = None
-        self.mid_beam_state = None
-        self.bottom_beam_state = None
+        self.state_current = (
+            None,
+            None,
+            None,
+            None
+        )
+        self.state_previous = (
+            None,
+            None,
+            None,
+            None
+        )
 
     def update(self):
-        self.exit_beam_state = self._exit_beam.get()
-        self.top_beam_state = self._top_beam.get()  # TODO
-        self.mid_beam_state = (
-            self._mid_beam.get()
-        )  # TODO What is this method actually called
-        self.bottom_beam_state = self._bottom_beam.get()
+        self.state_previous = self.state_current
+        self.state_current = (
+            self._exit_beam.get(),
+            self._top_beam.get(),
+            self._bottom_beam.get(),
+            self._entry_beam.get()
+        )
 
 
 class Indexer(Subsystem):
