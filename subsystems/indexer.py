@@ -1,10 +1,11 @@
 from time import sleep
 from wpilib.command import Subsystem
 from enum import Enum
-from ctre import WPI_TalonFX, TalonFXControlMode
+from ctre import WPI_TalonSRX, TalonSRXControlMode
 from wpilib import DigitalInput
 from typing import Optional
 from fusion.sensors import SensorService, Report, ReportError, Manager
+import ctre
 
 
 class IRService(SensorService):
@@ -15,34 +16,27 @@ class IRService(SensorService):
     TOP_BEAM_ID = "D3"
     EXIT_BEAM_ID = "D4"
 
-    class BreakReport(Report):
-        def __init__(self, service: SensorService):
-            super().__init__()
-
-            if service.previous_state == service.state:
-                raise ReportError("IRService", "No Changes")
-
-            self.previous_state = service.previous_state
-            self.state = service.state
-
     def __init__(self):
+        super().__init__("IRService", IRService.POLL_RATE)
+
         self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID)
         self._top_beam = DigitalInput(IRService.TOP_BEAM_ID)
         self._bottom_beam = DigitalInput(IRService.BOTTOM_BEAM_ID)
         self._entry_beam = DigitalInput(IRService.ENTRY_BEND_BEAM_ID)
 
-        self.state_current = (
-            None,
-            None,
-            None,
-            None
-        )
-        self.state_previous = (
-            None,
-            None,
-            None,
-            None
-        )
+        self.previous_state = (None, None, None, None)
+        self.current_state = (None, None, None, None)
+
+    class BreakReport(Report):
+        def __init__(self, service: SensorService):
+            super().__init__()
+
+            if service.previous_state == service.current_state:
+                raise ReportError("IRService", "No Changes")
+
+            self.previous_state = service.previous_state
+            self.current_state = service.current_state
+
 
     def update(self):
         self.state_previous = self.state_current
@@ -60,13 +54,14 @@ class Indexer(Subsystem):
     MAX_SPEED = 5  # m/s
     TALON_ID = 11
 
-    class IndexerSpace(Enum):
-        FULL = (True, True, True)
-        EMPTY = (False, False, False)
-        HORIZONTAL = (False, True, False)
-        VERTICAL = (True, False, False)
-        BOTH = (True, True, False)
-        ONE = (False, True, True)
+
+
+
+    TALON_ID = 11
+    
+    TARGET_VELOCITY = 10000 # ticks/100ms
+    MAX_MOTOR_ACCELERATION = 2000 # ticks/100ms/s
+ 
 
     class BallState(Enum):
         ENTERING = 0
@@ -89,14 +84,24 @@ class Indexer(Subsystem):
 
     """
     Defines the motor IDs, beam IDs, and the State Enums for use later
+    The ball states and fake ball might or might not be outdated
     """
 
     def __init__(self):
-        self.ball_count = 0
+    
 
         self.belt_controller = WPI_TalonFX(Indexer.TALON_ID)
 
         self.ball_list = []
+
+        self.belt_controller.config_kP(Shooter.PID_P_BELT)
+        self.belt_controller.config_kI(Shooter.PID_I_BELT)
+        self.belt_controller.config_kD(Shooter.PID_D_TALON_BELT)
+        self.belt_controller.configMotionAcceleration(Shooter.MAX_MOTOR_ACCEL)
+        self.belt_controller.configMotionCruiseVelocity(Shooter.TARGET_VELOCITY)
+        self.belt_controller.configMotionSCurveStrength(1) # Smoothness from 1 to 8 (integer) (1 is a trapezoid)
+
+        self.belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
         """
         Define all the break beams and motor controllers
@@ -111,26 +116,8 @@ class Indexer(Subsystem):
         report = Manager().get(IRService.BreakReport)
         return report[2]
 
-    def setBelt(self, velocity: float = 0):
-        # Velocity is in encoder ticks per 100 ms
-        self.belt_controller.set(TalonFXControlMode.velocity, velocity)
+    def setBeltTicks(self, ticks:int = 0):
+        # Angle in encoder ticks
+        self.belt_controller.set(TalonSRXControlMode.MotionMagic, ticks)
 
-    def __init__(self):
-        super().__init__("IRService", IRService.POLL_RATE)
 
-        self._entry_sensor = DigitalInput(IRService.HORIZ_BEND_BEAM_ID)
-        self._bottom_sensor = DigitalInput(IRService.BOTTOM_BEAM_ID)
-        self._top_sensor = DigitalInput(IRService.TOP_BEAM_ID)
-        self._exit_sensor = DigitalInput(IRService.VERT_BEND_BEAM_ID)
-
-        self.previous_state = (None, None, None, None)
-        self.current_state = (None, None, None, None)
-
-    def update(self):
-        self.previous_state = self.current_state
-        self.current_state = (
-            self._entry_sensor.get(),
-            self._bottom_sensor.get(),
-            self._top_sensor.get(),
-            self._exit_sensor.get(),
-        )
