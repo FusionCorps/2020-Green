@@ -9,12 +9,10 @@ from enum import Enum
 from inspect import signature
 from queue import Queue
 from typing import Dict, List, Tuple, Type
-
 from wpilib import DigitalInput
-
 from navx import AHRS
 from wpilib import SPI, Timer
-
+from wpilib import SerialPort
 
 class ReportError(Exception):
     pass
@@ -181,3 +179,43 @@ class CollisionService(SensorService, th.Thread):
 
     def update(self):
         pass
+
+class UltrasonicService(SensorService):
+    PORT = 0
+    BYTE_READ = 8
+
+    def __init__(self):
+        super().__init__(0.002)
+        self.m_ultrasonic = SerialPort(port=UltrasonicSensor.PORT)
+        self.distance = 0
+
+        self.state_current = (
+            None,
+        )
+
+        self.state_previous = (
+            None,
+        )
+
+    def update(self):
+        self.state_previous = self.state_current
+        self.state_current = (
+            self.m_ultrasonic.read()
+
+        )
+
+
+    def update_distance(self):
+        self.distance = self.m_ultrasonic.read(UltrasonicSensor.BYTE_READ)
+        print(self.distance)
+
+    class UltrasonicReport(Report):
+        def __init__(self, service: SensorService):
+            if service.previous_state == service.state:
+                raise ReportError("UltrasonicService", "No Changes")
+
+                self.previous_state = service.previous_state
+                self.state = service.state
+
+
+
