@@ -1,9 +1,10 @@
 from wpilib.command import Subsystem
 from enum import Enum
-from ctre import WPI_TalonFX, TalonFXControlMode
+from ctre import WPI_TalonSRX, TalonSRXControlMode
 from wpilib import DigitalInput
 from typing import Optional
 from fusion.sensors import SensorService, Report, ReportError, Manager
+import ctre
 
 class IRService(SensorService):
     POLL_RATE = 0.002  # ms
@@ -58,7 +59,9 @@ class Indexer(Subsystem):
 
 
     TALON_ID = 11
-
+    
+    TARGET_VELOCITY = 10000
+    MAX_MOTOR_ACCELERATION = 2000 # ticks/100ms/s
  
 
     class BallState(Enum):
@@ -90,7 +93,7 @@ class Indexer(Subsystem):
     '''
 
     def __init__(self):
-        self.ball_count = 0
+    
 
         self.belt_controller = WPI_TalonFX(Indexer.TALON_ID)
 
@@ -98,6 +101,16 @@ class Indexer(Subsystem):
 
 
         self.ball_list = []
+
+        self.belt_controller.config_kP(Shooter.PID_P_BELT)
+        self.belt_controller.config_kI(Shooter.PID_I_BELT)
+        self.belt_controller.config_kD(Shooter.PID_D_TALON_BELT)
+        self.belt_controller.configMotionAcceleration(Shooter.MAX_MOTOR_ACCEL)
+        self.belt_controller.configMotionCruiseVelocity(Shooter.TARGET_VELOCITY)
+        self.belt_controller.configMotionSCurveStrength(1) # Smoothness from 1 to 8 (integer) (1 is a trapezoid)
+
+
+        self.belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
         '''
         Define all the break beams and motor controllers
@@ -111,9 +124,9 @@ class Indexer(Subsystem):
         report = Manager().get(IRService.BreakReport)
         return report[2]
 
-    def setBelt(self, velocity:float = 0):
+    def setBeltTicks(self, ticks:int = 0):
         # Velocity is in encoder ticks per 100 ms
-        self.belt_controller.set(TalonFXControlMode.velocity, velocity)
+        self.belt_controller.set(TalonSRXControlMode.MotionMagic, ticks)
 
 
 
