@@ -1,14 +1,19 @@
-from ctre import WPI_TalonFX
+from ctre import VictorSPX, ControlMode
 from wpilib.command import Subsystem
-from wpilib import IterativeRobot
-from wpilib import PIDController
 
-class Robot(IterativeRobot):
+class Intake(Subsystem):
+
+    VICTOR_ID = 9
+
     def __init__(self):
-        super.__init__("Robot")
+        self.intake_controller = VictorSPX(Intake.VICTOR_ID)
+    
+    def set_intake(self, velocity:float):
+        # Velocity is in ticks/100ms
+        self.intake_controller.set(ControlMode.Velocity, velocity)
 
-        self.motorContollerBottom = WPI_TalonFX(6)
-        self.PIDControllerBottom = PIDController(1.0, 0.0, 0.0)
+    def turn_off(self):
+        self.intake_controller.stopMotor()
 
-    def teleopInit(self):
-        self.motorContollerBottom.set(self.PIDControllerBottom.get(self.motorContollerBottom.getSensorCollection().getIntegatedSensorVelocity()))
+
+
