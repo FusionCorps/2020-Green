@@ -11,8 +11,8 @@ import subsystems
 from fusion.sensors import Manager, Report, ReportError, SensorService
 
 # class IRService(SensorService):
-#     POLL_RATE = 0.002  # s
-
+    # POLL_RATE = 0.002  # s
+# 
 #     ENTRY_BEND_BEAM_ID = "D1"
 #     BOTTOM_BEND_BEAM_ID = "D2"
 #     TOP_BEAM_ID = "D3"
@@ -70,8 +70,10 @@ class Indexer(Subsystem):
         SHOOTING = 6
 
     class FakeBall:
-        def __init__(self):
+        def __init__(self, init_pos):
             self.state = Indexer.BallState.ENTERING
+            self.init_pos = init_pos
+
 
         def change_state(self, new_state):
             self.state = new_state
@@ -106,9 +108,11 @@ class Indexer(Subsystem):
 
         self.belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
+        self.ball_list = []
+
         """
         Define all the break beams and motor controllers
-        Set the vertical ball count to 0
+        Create the ball list
         """
 
     @staticmethod
@@ -131,3 +135,10 @@ class Indexer(Subsystem):
 
     def turn_off(self):
         self.belt_controller.motorOff()
+
+    def add_ball(self):
+        new_ball = Indexer.FakeBall(self.belt_controller.getSelectedSensorPosition())
+        ball_list.insert(new_ball)
+
+    def remove_ball(self, pos = -1):
+        ball_list.pop(pos)
