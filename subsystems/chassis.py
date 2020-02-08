@@ -164,7 +164,7 @@ class Chassis(Subsystem):
 
     #         for i in range(len(self._jerk_samples)):
     #             try:
-                    
+
     #                 self._block_time = 0
     #                 self._block_size = 0
     #                 while self._block_time < self.JERK_POLL_RATE:
@@ -179,14 +179,14 @@ class Chassis(Subsystem):
     #                             self._jerk_samples[-i - 2 :],
     #                         )
     #                     )  # Sets collision flag to whether all the jerk samples are above the threshold
-                        
+
     #                     self.block_count += 1
 
     #                     if self.block_count > 3:
     #                         self._has_collided = True
     #                     else:
     #                         self.block_count -= 2
-                        
+
     #                     if self._has_collided:
     #                         self._timer.start()
 
@@ -195,12 +195,9 @@ class Chassis(Subsystem):
     #                         self._timer.reset()
 
     #                         break  # Breaks before searching whole sample list unnecessarily
-                        
 
     #             except IndexError:
     #                 self._has_collided = False
-
-                   
 
     #     sleep(Chassis.JERK_POLL_RATE)  # Allows main thread to read from variables
 

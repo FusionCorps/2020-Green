@@ -18,3 +18,4 @@ from .indexer import *
 from .intake import *
 from .lift import *
 from .shooter import *
+from .hopper import *
