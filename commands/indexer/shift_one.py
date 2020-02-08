@@ -10,6 +10,10 @@ class ShiftOverOneSlot(Command):
 
     REQUIRED_TICKS = BALL_DIAMETER*2048/2/pi/0.009525
 
+    def __init__(self):
+        super().__init__(__name__)
+        self.requires(Indexer)
+
     def initialize(self):
         Indexer().setBeltTicks(REQUIRED_TICKS)
 
