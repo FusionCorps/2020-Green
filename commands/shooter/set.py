@@ -5,13 +5,16 @@ from subsystems.shooter import Shooter
 
 
 class ToSpooling(CommandGroup):
+
+    class ToSpoolingScheduler(Scheduler):
+
     def __init__(self):
         super().__init__("ToSpooling")
         self.requires(Shooter())
 
         self.previous_state = None
 
-        self.addSequential(SetVelocity(Shooter.MAX_VELOCITY))
+        self.addSequential(SetVelocity(Shooter().target_velocity))
 
     def initialize(self):
         self.previous_state = Shooter().get_state()
@@ -21,10 +24,11 @@ class ToSpooling(CommandGroup):
             pass
 
     def isFinished(self):
-        pass
+        if Shooter()._talon_l.getSelectedSensorVelocity() == Shooter.MAX_VELOCITY:
+            retrun True
 
     def end(self):
-        pass
+        Shooter().set_state(Shooter.State.WAITING)
 
 
 class SetVelocity(InstantCommand):

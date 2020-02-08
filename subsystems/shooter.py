@@ -56,6 +56,8 @@ class Shooter(Subsystem):
 
         # TODO Check what Peak Nominal and Output configs do and add them
 
+        self.target_velocity = 20000 # Ticks/100ms
+
         """PIDF Constants"""
         self._talon_l.config_kP(Shooter.PID_P_TALON_LEFT)
         self._talon_l.config_kI(Shooter.PID_I_TALON_LEFT)

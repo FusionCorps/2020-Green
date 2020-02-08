@@ -5,13 +5,19 @@ from fusion.sensors import Manager
 
 class Shoot(Command):
 
+    BALL_DIAMETER = 0.2 # m 
+    WHEEL_RADIUS = 0.009525
+
+    REQUIRED_TICKS = BALL_DIAMETER*2048/2/pi/WHEEL_RADIUS
+
     def __init__(self):
         super().__init__(__name__)
         self.requires(Shooter())
+        self.requires(Indexer())
 
     def initialize(self):
         if Shooter().state == Shooter().State.WAITING:
-            Indexer.set_vert_belt(True, 2000):
+            Indexer().set_belt_ticks(Shoot.REQUIRED_TICKS)
             Shooter().state = Shooter().State.SHOOTING
 
     def execute(self):
@@ -24,7 +30,7 @@ class Shoot(Command):
             return True
     
     def end(self):
-        Shooter().state = Shooter().State.WAITING
+        Shooter().state = Shooter().State.SPOOLING
 
     
 
