@@ -12,7 +12,7 @@ from math import *
 class Shooter(Subsystem):
     _instance = None
 
-    ANGLE = pi/2
+    ANGLE = pi / 2
 
     ID_TALON_LEFT = 0
     ID_TALON_RIGHT = 1
@@ -22,7 +22,7 @@ class Shooter(Subsystem):
     PID_D_TALON_LEFT = 0.0
     PID_F_TALON_LEFT = 0.0
 
-    MAX_VELOCITY = 20480 # encoder ticks/100ms
+    MAX_VELOCITY = 20480  # encoder ticks/100ms
 
     class State(enum.Enum):
         STOPPED = 0  # Wheel stopped
@@ -67,26 +67,41 @@ class Shooter(Subsystem):
         return self._state
 
     @staticmethod
-    def calculate_angular_velocity(distance:float, height:float, shooter_angle:float = Shooter.ANGLE):    
-        # Angle needs to be in RADIANS 
+    def calculate_angular_velocity(
+        distance: float, height: float, shooter_angle: float = Shooter.ANGLE
+    ):
+        # Angle needs to be in RADIANS
         v_rob = 0
-        height = 2.49 # meters
+        height = 2.49  # meters
 
         velocity = (
-        2 * v_rob * cos(shooter_angle)
-        - v_rob * sin(shooter_angle) * distance
-        + sqrt(
-            (2 * v_rob * cos(shooter_angle) - v_rob * sin(shooter_angle) * distance) ** 2
-            + 4
-            * (sin(shooter_angle) * cos(shooter_angle) * distance - height * cos(shooter_angle) ** 2)
-            * (9.8 * distance ** 2 / 2 + v_rob ** 2)
+            2 * v_rob * cos(shooter_angle)
+            - v_rob * sin(shooter_angle) * distance
+            + sqrt(
+                (2 * v_rob * cos(shooter_angle) - v_rob * sin(shooter_angle) * distance)
+                ** 2
+                + 4
+                * (
+                    sin(shooter_angle) * cos(shooter_angle) * distance
+                    - height * cos(shooter_angle) ** 2
+                )
+                * (9.8 * distance ** 2 / 2 + v_rob ** 2)
+            )
+        ) / (
+            2
+            * (
+                sin(shooter_angle) * cos(shooter_angle) * distance
+                - height * cos(shooter_angle) ** 2
+            )
         )
-        ) / (2 * (sin(shooter_angle) * cos(shooter_angle) * distance - height * cos(shooter_angle) ** 2))
 
-        omega = 2 * velocity / 0.1016 # radians/second
-        converted_omega = 102.4 / pi * omega # encoder ticks/100ms
+        omega = 2 * velocity / 0.1016  # radians/second
+        converted_omega = 102.4 / pi * omega  # encoder ticks/100ms
 
         return converted_omega
+
+    def set_state(self, state: Shooter.State):
+        self._state = state
 
     def set(self, control_mode: ControlMode, value):
         self._talon_l.set(mode=control_mode, demand0=value)
