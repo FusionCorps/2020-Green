@@ -1,11 +1,9 @@
 from wpilib.command import Subsystem
 from wpilib import DigitalInput
 from ctre import WPI_TalonSRX, ControlMode
-<<<<<<< HEAD
 from enum import Enum
-=======
 from fusion.sensors import SensorService, Manager, Report, ReportError
->>>>>>> e9112910ee6745637e6910e78c7c6347c51377f9
+import math
 
 class UltrasoundService()
     
@@ -28,7 +26,8 @@ class UltrasoundService()
             if service.previous_state == service.current_state:
                 raise ReportError("IRService", "No Changes")
 
-<<<<<<< HEAD
+class Climb(Subsystem):
+
     TALON_ID = 14 
 
     DEFAULT_SPEED = 10000 # encoder ticks per 100 ms
@@ -63,7 +62,16 @@ class UltrasoundService()
     def meters_to_ticks(meters):
         # Convert from meters of height to ticks of rotation
         pass
-    
+
+    @staticmethod
+    def where_to_hang_self(sensor_width, m_6672, m_1, m_2, m_bar):
+        # Find where to hang robot to balance bar
+        report = Manager().get(UltrasoundReport)
+        alpha = atan(0.66/1.41)
+        theta = atan((report[0] - report[1])/sensor_width)
+        distance = 0.66*(report[0] - report[1])*(m_1 + m_2 + m_bar)/(m_6672*sensor_width)
+        height = (2.83 - 1.56*sin(alpha + theta) + (1.41 + distance)*sin(theta))
+        return height
     
     def turn_ticks(self, ticks:int):
         self.climb_controller.set(ControlMode.MotionMagic, ticks)
@@ -71,25 +79,3 @@ class UltrasoundService()
     def turn_off(self):
         self.climb_controller.motorOff()
 
-=======
-            self.previous_state = service.previous_state
-            self.current_state = service.current_state
-    
-    def update(self):
-        self.state_previous = self.state_current
-        self.state_current = (self._l_sensor.get(), self._r_sensor.get())
-
-    
-
-
-
-class Climb(Subsystem):
-
-    def __init__(self):
-        pass
-    
-    @staticmethod
-    def climb_calculator(m_6672, m_1, m_2, delta_x):
-        report = Manager().get(UltrasoundService.UltrasoundReport)
-        # TODO - Finish this - AO
->>>>>>> e9112910ee6745637e6910e78c7c6347c51377f9
