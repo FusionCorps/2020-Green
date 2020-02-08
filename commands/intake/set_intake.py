@@ -3,10 +3,10 @@ from subsystems.intake import Intake
 
 class SetIntake(InstantCommand):
     def __init__(self, velocity):
-        super.__init__("SetIntake")
+        super().__init__("SetIntake")
 
     def initiate(self):
-        Intake.set_intake(velocity)
+        Intake().set_intake(velocity)
     
 
 

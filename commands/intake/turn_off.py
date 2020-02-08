@@ -1,7 +1,7 @@
-from wpilib.command import Command
+from wpilib.command import InstantCommand
 from subsystems.intake import Intake
 
-class TurnOff(Command):
+class TurnOff(InstantCommand):
 
     def initiate(self):
-        Intake.turn_off()
+        Intake().turn_off()
