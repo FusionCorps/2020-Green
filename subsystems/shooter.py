@@ -62,7 +62,7 @@ class Shooter(Subsystem):
         self._talon_l.config_kD(Shooter.PID_D_TALON_LEFT)
 
         self._talon_l.setSelectedSensorPosition(0)  # Zero the magnetic encoder
-    
+
     def get_state(self):
         return self._state
 
@@ -71,6 +71,7 @@ class Shooter(Subsystem):
         # Angle needs to be in RADIANS 
         v_rob = 0
         height = 2.49 # meters
+
         velocity = (
         2 * v_rob * cos(shooter_angle)
         - v_rob * sin(shooter_angle) * distance
@@ -81,22 +82,12 @@ class Shooter(Subsystem):
             * (9.8 * distance ** 2 / 2 + v_rob ** 2)
         )
         ) / (2 * (sin(shooter_angle) * cos(shooter_angle) * distance - height * cos(shooter_angle) ** 2))
+
         omega = 2 * velocity / 0.1016 # radians/second
         converted_omega = 102.4 / pi * omega # encoder ticks/100ms
+
         return converted_omega
 
-    def set_motors_velocity(self, velocity:float = 0):
-        # Velocity is in ticks/100ms
-        self._talon_r.set(ctre.TalonFXControlMode.velocity, velocity)
-
-    def set_motors_percentage(self, per:float = 0):
-        # percent is a float between 1, -1.
-        self._talon_r.set(ctre.TalonFXControlMode.percent, per)
-
-
-
-
-
-    
-
+    def set(self, control_mode: ControlMode, value):
+        self._talon_l.set(mode=control_mode, demand0=value)
 
