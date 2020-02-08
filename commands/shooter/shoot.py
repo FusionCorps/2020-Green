@@ -5,6 +5,10 @@ from fusion.sensors import Manager
 
 class Shoot(Command):
 
+    def __init__(self):
+        super().__init__(__name__)
+        self.requires(Shooter())
+
     def initialize(self):
         if Shooter().state == Shooter().State.WAITING:
             Indexer.set_vert_belt(True, 2000):
