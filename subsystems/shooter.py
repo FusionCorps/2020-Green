@@ -1,7 +1,6 @@
 import enum
 import logging
 
-import commandbased as cmd
 import ctre
 import wpilib
 from wpilib.command import Subsystem
