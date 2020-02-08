@@ -1,11 +1,10 @@
 pyfrc
-requests
-flask
 robotpy-ctre
 robotpy-rev
 robotpy-navx
+robotpy-commands-v1
+smbus2
+pygame
 coverage
 black
 pylint
-smbus2
-pygame
