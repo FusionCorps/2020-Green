@@ -60,19 +60,16 @@ class Indexer(Subsystem):
     TARGET_VELOCITY = 10000  # ticks/100ms
     MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
 
-    class BallState(Enum):
-        ENTERING = 0
-        BOTTOM_CORNER = 1
-        IN_CORNER = 2
-        VERTICAL_CORNER = 3
-        UNBUFFERED = 4
-        TOP = 5
-        SHOOTING = 6
+    # class BallState(Enum):
+    #     INTAKE = 0
+    #     HOPPER = 1
+    #     INDEXER = 2
+    #     SHOOTER = 3
 
-    class FakeBall:
-        def __init__(self, init_pos):
-            self.state = Indexer.BallState.ENTERING
-            self.init_pos = init_pos
+    # class FakeBall:
+    #     def __init__(self, init_pos):
+    #         self.state = Indexer.BallState.ENTERING
+    #         self.init_pos = init_pos
 
 
         def change_state(self, new_state):
@@ -142,3 +139,11 @@ class Indexer(Subsystem):
 
     def remove_ball(self, pos = -1):
         ball_list.pop(pos)
+
+    def get_ball_pos(self):
+        positions = []
+        for ball in ball_list:
+            position.append(self.belt_controller.getSelectedSensorPosition() - ball.init_pos)
+        return positions
+
+     
