@@ -1,14 +1,61 @@
-from ctre import WPI_TalonFX
+import enum
+import logging
+
+import commandbased as cmd
+import ctre
+import wpilib
 from wpilib.command import Subsystem
-from wpilib import IterativeRobot
-from wpilib import PIDController
 
-class Robot(IterativeRobot):
+
+class Shooter(Subsystem):
+    _instance = None
+
+    ID_TALON_TOP = 0
+    ID_TALON_BOTTOM = 1
+
+    PID_P_TALON_LEFT = 1.0
+    PID_I_TALON_LEFT = 0.0
+    PID_D_TALON_LEFT = 0.0
+    PID_F_TALON_LEFT = 0.0
+
+    MAX_VELOCITY = 26000
+
+    class State(enum.Enum):
+        STOPPED = 0  # Wheel stopped
+        SPOOLING = 1  # Wheel speeding up
+        WAITING = 2  # Wheel at speed; waiting for ball
+        SHOOTING = 3  # Wheel at speed; ball loading
+        SLOWING = 4  # Wheel slowing down
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Shooter, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        super.__init__("Robot")
+        super.__init__("Shooter")
 
-        self.motorContollerTop = WPI_TalonFX(5)
-        self.PIDControllerTop = PIDController(1.0, 0.0, 0.0)
+        self._state = Shooter.State.STOPPED
 
-    def teleopInit(self):
-        self.motorContollerTop.set(self.PIDControllerTop.get(self.motorContollerTop.getSensorCollection().getIntegatedSensorVelocity()))
+        self._talon_top = ctre.WPI_TalonFX(Shooter.ID_TALON_TOP)
+        self._talon_bottom = ctre.WPI_TalonFX(Shooter.ID_TALON_BOTTOM)
+
+        self._talon_top.setInverted(True)  # Left motor mounted opposite right one
+        self._talon_top.configSelectedFeedbackSensor(
+            ctre.FeedbackDevice.CTRE_MagEncoder_Relative
+        )  # Magnetic encoder should be relative to starting measurement point
+        self._talon_top.setSensorPhase(
+            True
+        )  # Encoder feedback should read positive even if left motor is flipped
+
+        self._talon_bottom.follow(self._talon_top)  # Makes left motor the master controller
+
+        # TODO Check what Peak Nominal and Output configs do and add them
+
+        """PIDF Constants"""
+        self._talon_top.config_kP(Shooter.PID_P_TALON_LEFT)
+        self._talon_top.config_kI(Shooter.PID_I_TALON_LEFT)
+        self._talon_top.config_kD(Shooter.PID_D_TALON_LEFT)
+
+        self._talon_top.setSelectedSensorPosition(0)  # Zero the magnetic encoder
+
