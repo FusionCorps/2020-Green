@@ -15,7 +15,7 @@ class ShiftOverOneSlot(Command):
         self.requires(Indexer)
 
     def initialize(self):
-        Indexer().setBeltTicks(REQUIRED_TICKS)
+        Indexer().set_belt_ticks(REQUIRED_TICKS)
 
     def isFinished(self):
         if Indexer().belt_controller.get() == 0:

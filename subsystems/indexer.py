@@ -82,6 +82,11 @@ class Indexer(Subsystem):
         def return_state(self):
             return self.state
 
+    class IndexerState(Enum):
+        RUNNING = 0 # Belts moving
+        NOT_READY = 1 # No ball at top
+        READY = 2 # Ball at top
+
     """
     Defines the motor IDs, beam IDs, and the State Enums for use later
     The ball states and fake ball might or might not be outdated
@@ -116,13 +121,16 @@ class Indexer(Subsystem):
         report = Manager().get(IRService.BreakReport)
         return report[2]
 
-    def setBeltTicks(self, ticks:int = 0):
+    def set_belt_ticks(self, ticks:int = 0):
         # Angle in encoder ticks
         self.belt_controller.set(ControlMode.MotionMagic, ticks)
 
     def set_belt_velocity(self, velocity):
         self.belt_controller.set(ControlMode.Velocity, velocity)
 
+    def set_belt_percentage(self, percentage):
+        self.belt_controller.set(ControlMode.Percentage, percentage)
+    
     def turn_off(self):
         self.belt_controller.motorOff()
 
