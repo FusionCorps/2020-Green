@@ -3,7 +3,7 @@ from subsystems.indexer import Indexer, IRService
 from fusion.sensors import SensorService, Report, ReportError, Manager
 
 
-class ShiftOverOneSlot(Command):
+class ShiftOne(Command):
 
     BALL_DIAMETER = 0.2 # m 
     WHEEL_RADIUS = 0.009525
