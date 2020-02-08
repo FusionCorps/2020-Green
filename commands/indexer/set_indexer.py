@@ -1,6 +1,7 @@
 from wpilib.command import InstantCommand
 from subsystems.indexer import Indexer
 
+
 class SetVelocity(InstantCommand):
     def __init__(self, velocity):
         super().__init__(__name__)
@@ -10,18 +11,20 @@ class SetVelocity(InstantCommand):
     def initialize(self):
         Indexer().set_belt_velocity(velocity)
 
+
 class SetPercentage(InstantCommand):
     def __init__(self, percentage):
-        super().__init__('SetPercentage')
+        super().__init__("SetPercentage")
         self.requires(Indexer())
         self.percentage = percentage
 
-    def initalize(self):
+    def initialize(self):
         Indexer().set_belt_percentage(self.percentage)
 
-class SetTicks(InstantCommand):
+
+class SetPosition(InstantCommand):
     def __init__(self, ticks):
-        super().__init__('SetTicks')
+        super().__init__("SetPosition")
         self.ticks = ticks
         self.requires(Indexer())
 

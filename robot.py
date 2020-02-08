@@ -5,7 +5,8 @@ from wpilib import run
 class Green(CommandBasedRobot):
     def robotInit(self):
         import inputs
-        from subsystems import i_chassis
+        import subsystems
+        import commands
 
 
 if __name__ == "__main__":
