@@ -1,3 +1,4 @@
+from itertools import islice
 import logging
 import multiprocessing as mp
 import multiprocessing.queues as mpq
@@ -72,10 +73,12 @@ class Service(ABC, th.Thread):
         they are run.
     """
 
-    def __init__(self):
+    def __init__(self, poll_rate: float):
         super().__init__(target=self._process)
 
         self._last_poll: datetime = None  # Last sensor update
+        self._poll_rate = poll_rate
+
         self._queue: Queue = Queue(100)  # Arbitrary limit of 100 elements
         self._is_killed = th.Event()  # If set, Service will be terminated ASAP
 
@@ -108,6 +111,8 @@ class Service(ABC, th.Thread):
                 except ReportError:
                     pass
 
+            sleep(self._poll_rate)
+
     def _kill(self):
         """
         Common interface for killing services.
@@ -129,82 +134,62 @@ class Manager(mp.Process):
         `Manager` is a Singleton.
     """
 
-    _instance = None
-
-    # A dictionary mapping Service classes to their Threads
-    _services: Dict[Type[Service], List[th.Thread]] = None
-    # A dictionary mapping Service classes to their Reports
-    _reports: Dict[Type[Service], List[Report]] = None
-
-    # Multiprocessing queue that sends objects to Commandbased side
-    _commandbased_queue: mpq.Queue = None
-
-    # Multiprocessing queue that receives objects from Commandbased side
-    _request_queue: mpq.Queue = None
+    _instance = None  # Holds Manager instance, queue, and kill flag in tuple
+    _queue: mpq.Queue = None
+    _killed: mp.Event = None
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(Manager, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, services: List[Type[Service]]):
+    def __init__(self, services: Optional[List[SensorService]] = None):
         super().__init__(target=self.manage)
 
         self._services: Dict[Type[Service], List[th.Thread]] = {}
         self._reports: Dict[Type[Service], List[Report]] = {}
 
-        for s in services:
-            self._services[s] = []
+        if services is None:
+            raise ValueError("`services` cannot be None!")
+
+        for service in services:
+            self._services[service] = []
+
+        Manager._queue = mpq.Queue(1000)
+        Manager._killed = mp.Event()
 
         self._logger = logging.getLogger("Manager")
-        self._is_killed = mp.Event()
-        self._mp_lock = mp.RLock()
 
-    def start_services(self):
+    def _start_services(self):
         """
         Start threads for all registered services.
         """
 
-        with self._mp_lock:
-            for service in self._services.keys():
-                try:
-                    self._services[service].append(service_thread := service())
-                except KeyError:
-                    self._services[service] = [service_thread := service()]
-                finally:
-                    self._reports[service_thread] = []
-                    service_thread.start()
-
-    def add_service(self, service: Type[Service]):
-        """
-        Add a new service to be immediately run. If the service exists already,
-        add a new instance of that service to the list of running services.
-        """
-        with self._mp_lock:
+        for service in self._services.keys():
             try:
                 self._services[service].append(service_thread := service())
             except KeyError:
                 self._services[service] = [service_thread := service()]
             finally:
+                self._reports[service_thread] = []
                 service_thread.start()
 
     def _poll_reports(self):
         while True:
-            if self._is_killed.is_set():
+            if Manager._killed.is_set():
                 self._kill_services()  # Kill all the services before killing self
                 return
 
-            with self._mp_lock:  # Use lock to get all the updated Reports
-                queues = []
+            queues = []
 
-                for service_thread_list in self._services.values():
-                    for service in service_thread_list:
-                        queues.append((service, service._queue))
+            for service_thread_list in self._services.values():
+                for service in service_thread_list:
+                    queues.append((service, service._queue))
 
             for service, queue in queues:
                 while True:
                     try:
-                        self._reports[service].append(queue.get_nowait())
+                        self._reports[service].append(queue.get())
                     except Empty:
                         break
 
@@ -213,50 +198,67 @@ class Manager(mp.Process):
         Remove old Reports.
         """
         while True:
-            with self._mp_lock:
-                for service, report_list in self._reports.items():
-                    for report in report_list:
-                        if report.is_old():
-                            self._reports[service].remove(report)
+            for service, report_list in self._reports.items():
+                for report in report_list:
+                    if report.is_old():
+                        self._reports[service].remove(report)
 
     def kill(self):
         """
         End the SensorManager and its child Services.
         """
+
         self._logger.warning("SensorManager is ending...")
-        self._is_killed.set()
-        self.join()
+        Manager._killed.set()
+        Manager().join()
 
     def _kill_services(self):
         """
         Kill all Services and reset the threads list.
         """
-        with self._mp_lock:
-            for service_thread_list in self._services.values():
-                for thread in service_thread_list:
-                    thread.kill()  # Sets kill event flag to signal service should wrap up
-                    thread.join()  # Blocks until service is dead
 
-            for service in self._services.keys():
-                self._services[service] = None  # Reset threads to None
+        for service_thread_list in self._services.values():
+            for thread in service_thread_list:
+                thread.kill()  # Sets kill event flag to signal service should wrap up
+                thread.join()  # Blocks until service is dead
+
+        for service in self._services.keys():
+            self._services[service] = None  # Reset threads to None
 
     def manage(self):
-        self.start_services()
-        self._run_loop()
-
-    def _run_loop(self):
+        self._start_services()
         self._poll_reports()
 
-    def get(self, report_type: Type[Report]) -> List[Report]:
-        with self._mp_lock:
-            return_list = []
 
-            for report_list in self._reports.values():
-                for report in report_list:
-                    if isinstance(report, report_type):
-                        return_list.append(report)
+class Client(th.Thread):
+    _instance = None
+    _reports: List[Report] = None
 
-        return return_list
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Client, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        super().__init__(target=self._update_reports)
+
+        self.lock = th.RLock()
+
+    def _update_reports(self):
+        while True:
+            with self.lock:
+                for r in Client._reports:
+                    if r.is_old():
+                        Client._reports.remove(r)
+
+                try:
+                    Client._reports.append(Manager()._queue.get())
+                except Empty:
+                    break
+
+    def get(self, report: Type[Report], number: int = -1) -> List[Report]:
+        with self.lock:
+            return [r for r in Client._reports if type(r) == report][:-number]
 
 
 class Tester(Service):
@@ -293,127 +295,3 @@ class Tester(Service):
         with self.lock:
             return self.counter
 
-
-def test_manager():
-    manager = Manager([Tester])
-    manager.start()
-
-    timer = wpilib.Timer()
-    timer.start()
-
-    while not timer.hasPeriodPassed(10):
-        sleep(1)
-        assert len(manager.get(Tester.IncreasedByTen)) > 0
-
-
-# TODO Move these services into their respective subsystems
-
-
-# class IndexerService(SensorService):
-#     """
-#     Sensor Service that detects when IR Light breakage sensors' states
-#     change.
-
-#     NOTE: This class is a Singleton.
-#     """
-
-#     _instance = None
-
-#     POLL_RATE = 0.002  # s -- Light Breakage poll rate
-
-#     DIO_HALL_SENSOR = 0
-#     DIO_BEND_SENSOR = 1
-#     DIO_CHUTE_SENSOR = 2
-
-#     class IRSensorState(Enum):
-#         UNBROKEN = False
-#         BROKEN = True
-
-#     class BallReport(Report):
-#         def __init__(
-#             self, service: HopperService,
-#         ):
-#             """
-#             Construct a new BallReport. Expires after 100 ms.
-#             """
-#             self.collection = datetime.now()
-
-#         def is_old(self) -> bool:
-#             return datetime.now() - self.collection > timedelta(millis=100)
-
-#     def __new__(cls, *args, **kwargs):
-#         if cls._instance is None:
-#             cls._instance = super(IndexerService, cls).__new__(cls, *args, **kwargs)
-#         return cls._instance
-
-#     def __init__(self):
-#         super().__init__()
-#         self.hall_sensor = DigitalInput(self.DIO_HALL_SENSOR)
-#         self.bend_sensor = DigitalInput(self.DIO_BEND_SENSOR)
-#         self.chute_sensor = DigitalInput(self.DIO_CHUTE_SENSOR)
-
-#         self.sensors = [
-#             self.hall_sensor,
-#             self.bend_sensor,
-#             self.chute_sensor,
-#         ]
-
-#         self.previous_hall_state: HopperService.IRSensorState = None
-#         self.previous_bend_state: HopperService.IRSensorState = None
-#         self.previous_chute_state: HopperService.IRSensorState = None
-
-#     def get_hall(self) -> HopperService.IRSensorState:
-#         pass
-
-#     def update(self):
-#         pass
-
-
-# class CollisionService(SensorService):
-#     """
-#     Sensor Service tracking collision events using the NavX AHRS sensor
-#     collection.
-
-#     NOTE: This class is a Singleton.
-#     """
-
-#     _instance = None
-
-#     POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
-
-#     class CollisionReport(Report):
-#         COLLISION_THRESHOLD = 0.5  # G -- Threshold for collisions
-#         COLLISION_PEAK_TIME = 0.01  # s -- Amt. of time measurements must be above threshold before registering a collision
-
-#         def __init__(self, service: SensorService):
-#             super().__init__(self)
-
-#             #  TODO: Collision Detection code goes here
-#             for a in service._x_jerk_samples:
-#                 pass
-
-#         def is_old(self) -> bool:
-#             return datetime.now() - self.collection_time < timedelta(seconds=1)
-
-#     def __new__(cls, *args, **kwargs):
-#         if cls._instance is None:
-#             cls._instance = super(CollisionService, cls).__new__(cls, *args, **kwargs)
-
-#     def __init__(self):
-#         super(CollisionService, self).__init__()
-
-#         self._ahrs = AHRS(SPI.Port.kMXP)
-
-#         # Arrays used because samples are ordered and of same type -- faster
-#         self._x_jerk_samples: array = array("f")
-#         self._y_jerk_samples: array = array("f")
-#         self._z_jerk_samples: array = array("f")
-
-#         self._time_jerk_samples: List[datetime] = None
-
-#         self._x_last_acceleration: float = 0.0
-#         self._y_last_acceleration: float = 0.0
-#         self._z_last_acceleration: float = 0.0
-
-#     def update(self):
-#         pass  # TODO
