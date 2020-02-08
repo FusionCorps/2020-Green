@@ -48,7 +48,9 @@ class GripPipelineIndexer:
         self.__find_blobs_input = self.mask_output
         (self.find_blobs_output) = self.__find_blobs(self.__find_blobs_input, self.__find_blobs_min_area, self.__find_blobs_circularity, self.__find_blobs_dark_blobs)
         
-        """# convert image to grayscale image
+        '''Note to Winston this is the part that might have problems'''
+        
+        # convert image to grayscale image
         gray_image = cv2.cvtColor(source0, cv2.COLOR_BGR2GRAY)
         
         # convert the grayscale image to binary image
@@ -67,8 +69,8 @@ class GripPipelineIndexer:
  
         # display the image
         cv2.imshow("Image", source0)
-        cv2.waitKey(0)"""
-
+        cv2.waitKey(0)
+        '''The end of the problem bit'''
 
     @staticmethod
     def __hsv_threshold(input, hue, sat, val):
