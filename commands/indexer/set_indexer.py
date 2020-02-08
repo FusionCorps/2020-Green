@@ -9,7 +9,8 @@ class SetVelocity(InstantCommand):
         self.requires(Indexer())
 
     def initialize(self):
-        Indexer().set_belt_velocity(velocity)
+        if not Indexer().check_top():
+            Indexer().set_belt_velocity(velocity)
 
 
 class SetPercentage(InstantCommand):
@@ -19,7 +20,8 @@ class SetPercentage(InstantCommand):
         self.percentage = percentage
 
     def initialize(self):
-        Indexer().set_belt_percentage(self.percentage)
+        if not Indexer().check_top():
+            Indexer().set_belt_percentage(self.percentage)
 
 
 class SetPosition(InstantCommand):
@@ -29,5 +31,6 @@ class SetPosition(InstantCommand):
         self.requires(Indexer())
 
     def initialize(self):
-        Indexer().set_belt_ticks()
+        if not Indexer().check_top():
+            Indexer().set_belt_ticks()
 

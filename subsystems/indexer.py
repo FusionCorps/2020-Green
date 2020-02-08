@@ -8,45 +8,46 @@ from wpilib import DigitalInput
 from wpilib.command import Subsystem
 
 import subsystems
-from fusion.sensors import Manager, Report, ReportError, SensorService
+from fusion.sensors import Manager, Report, ReportError, SensorService\
+from fusion.ball_class import VirtualBall
 
-# class IRService(SensorService):
-    # POLL_RATE = 0.002  # s
-# 
-#     ENTRY_BEND_BEAM_ID = "D1"
-#     BOTTOM_BEND_BEAM_ID = "D2"
-#     TOP_BEAM_ID = "D3"
-#     EXIT_BEAM_ID = "D4"
+class IRService(SensorService):
+    POLL_RATE = 0.002  # s
 
-#     def __init__(self):
-#         super().__init__("IRService", IRService.POLL_RATE)
+    ENTRY_BEND_BEAM_ID = "D1"
+    BOTTOM_BEND_BEAM_ID = "D2"
+    TOP_BEAM_ID = "D3"
+    EXIT_BEAM_ID = "D4"
 
-#         self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID)
-#         self._top_beam = DigitalInput(IRService.TOP_BEAM_ID)
-#         self._bottom_beam = DigitalInput(IRService.BOTTOM_BEAM_ID)
-#         self._entry_beam = DigitalInput(IRService.ENTRY_BEND_BEAM_ID)
+    def __init__(self):
+        super().__init__("IRService", IRService.POLL_RATE)
 
-#         self.previous_state = (None, None, None, None)
-#         self.current_state = (None, None, None, None)
+        self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID)
+        self._top_beam = DigitalInput(IRService.TOP_BEAM_ID)
+        self._bottom_beam = DigitalInput(IRService.BOTTOM_BEAM_ID)
+        self._entry_beam = DigitalInput(IRService.ENTRY_BEND_BEAM_ID)
 
-#     class BreakReport(Report):
-#         def __init__(self, service: SensorService):
-#             super().__init__()
+        self.previous_state = (None, None, None, None)
+        self.current_state = (None, None, None, None)
 
-#             if service.previous_state == service.current_state:
-#                 raise ReportError("IRService", "No Changes")
+    class BreakReport(Report):
+        def __init__(self, service: SensorService):
+            super().__init__()
 
-#             self.previous_state = service.previous_state
-#             self.current_state = service.current_state
+            if service.previous_state == service.current_state:
+                raise ReportError("IRService", "No Changes")
 
-#     def update(self):
-#         self.state_previous = self.state_current
-#         self.state_current = (
-#             self._exit_beam.get(),
-#             self._top_beam.get(),
-#             self._bottom_beam.get(),
-#             self._entry_beam.get(),
-#         )
+            self.previous_state = service.previous_state
+            self.current_state = service.current_state
+
+    def update(self):
+        self.state_previous = self.state_current
+        self.state_current = (
+            self._exit_beam.get(),
+            self._top_beam.get(),
+            self._bottom_beam.get(),
+            self._entry_beam.get(),
+        )
 
 
 class Indexer(Subsystem):
@@ -59,18 +60,6 @@ class Indexer(Subsystem):
 
     TARGET_VELOCITY = 10000  # ticks/100ms
     MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
-
-    # class BallState(Enum):
-    #     INTAKE = 0
-    #     HOPPER = 1
-    #     INDEXER = 2
-    #     SHOOTER = 3
-
-    # class FakeBall:
-    #     def __init__(self, init_pos):
-    #         self.state = Indexer.BallState.ENTERING
-    #         self.init_pos = init_pos
-
 
         def change_state(self, new_state):
             self.state = new_state
@@ -92,8 +81,6 @@ class Indexer(Subsystem):
 
         self.belt_controller = WPI_TalonFX(Indexer.TALON_ID)
 
-        self.ball_list = []
-
         self.belt_controller.config_kP(Indexer.PID_P_BELT)
         self.belt_controller.config_kI(Indexer.PID_I_BELT)
         self.belt_controller.config_kD(Indexer.PID_D_TALON_BELT)
@@ -111,6 +98,7 @@ class Indexer(Subsystem):
         Define all the break beams and motor controllers
         Create the ball list
         """
+
 
     @staticmethod
     def convert_ms_to_ticks(self, value: float) -> int:
@@ -145,5 +133,9 @@ class Indexer(Subsystem):
         for ball in ball_list:
             position.append(self.belt_controller.getSelectedSensorPosition() - ball.init_pos)
         return positions
+
+    def check_top(self):
+        report = Manager().get(IRService.BreakReport)
+        return report[2]
 
      
