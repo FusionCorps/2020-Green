@@ -6,7 +6,7 @@ import ctre
 import wpilib
 from wpilib.command import Subsystem
 
-from math import *
+from math import pi, sin, cos, sqrt
 
 
 class Shooter(Subsystem):
@@ -37,7 +37,7 @@ class Shooter(Subsystem):
         return cls._instance
 
     def __init__(self):
-        super.__init__("Shooter")
+        super().__init__("Shooter")
 
         self._state = Shooter.State.STOPPED
 
@@ -56,10 +56,10 @@ class Shooter(Subsystem):
 
         # TODO Check what Peak Nominal and Output configs do and add them
 
-        """PIDF Constants"""
-        self._talon_l.config_kP(Shooter.PID_P_TALON_LEFT)
-        self._talon_l.config_kI(Shooter.PID_I_TALON_LEFT)
-        self._talon_l.config_kD(Shooter.PID_D_TALON_LEFT)
+        """FPID Constants"""
+        self._talon_l.config_kP(0, Shooter.PID_P_TALON_LEFT)
+        self._talon_l.config_kI(0, Shooter.PID_I_TALON_LEFT)
+        self._talon_l.config_kD(0, Shooter.PID_D_TALON_LEFT)
 
         self._talon_l.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
@@ -68,7 +68,7 @@ class Shooter(Subsystem):
 
     @staticmethod
     def calculate_angular_velocity(
-        distance: float, height: float, shooter_angle: float = Shooter.ANGLE
+        distance: float, height: float, shooter_angle: float
     ):
         # Angle needs to be in RADIANS
         v_rob = 0
@@ -100,9 +100,9 @@ class Shooter(Subsystem):
 
         return converted_omega
 
-    def set_state(self, state: Shooter.State):
+    def set_state(self, state):
         self._state = state
 
-    def set(self, control_mode: ControlMode, value):
+    def set(self, control_mode: ctre.ControlMode, value):
         self._talon_l.set(mode=control_mode, demand0=value)
 

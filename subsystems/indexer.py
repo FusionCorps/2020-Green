@@ -53,9 +53,11 @@ class Indexer(Subsystem):
     _instance = None
 
     MAX_SPEED = 5  # m/s
-    TALON_ID = 11
 
     TALON_ID = 11
+    TALON_ID = 11
+
+    FPID_TALON_BELT = (0.0, 1.0, 0.0, 0.0)
 
     TARGET_VELOCITY = 10000  # ticks/100ms
     MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
@@ -90,15 +92,15 @@ class Indexer(Subsystem):
     """
 
     def __init__(self):
-
-        self.belt_controller = WPI_TalonFX(Indexer.TALON_ID)
+        self.belt_controller = ctre.WPI_TalonFX(Indexer.TALON_ID)
 
         self.ball_list = []
 
-        self.belt_controller.config_kP(Indexer.PID_P_BELT)
-        self.belt_controller.config_kI(Indexer.PID_I_BELT)
-        self.belt_controller.config_kD(Indexer.PID_D_TALON_BELT)
-        self.belt_controller.configMotionAcceleration(Indexer.MAX_MOTOR_ACCEL)
+        self.belt_controller.config_kP(0, Indexer.FPID_TALON_BELT[1])
+        self.belt_controller.config_kI(0, Indexer.FPID_TALON_BELT[2])
+        self.belt_controller.config_kD(0, Indexer.FPID_TALON_BELT[3])
+
+        self.belt_controller.configMotionAcceleration(Indexer.MAX_MOTOR_ACCELERATION)
         self.belt_controller.configMotionCruiseVelocity(Indexer.TARGET_VELOCITY)
         self.belt_controller.configMotionSCurveStrength(
             1
