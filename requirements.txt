@@ -1,9 +1,10 @@
 pyfrc
 robotpy-ctre
-coverage
 robotpy-rev
-black
-pylint
+robotpy-navx
+robotpy-commands-v1
 smbus2
 pygame
-robotpy-commands-v1
+coverage
+black
+pylint
