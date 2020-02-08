@@ -1,7 +1,7 @@
 from time import sleep
 from wpilib.command import Subsystem
 from enum import Enum
-from ctre import WPI_TalonSRX, TalonSRXControlMode
+from ctre import WPI_TalonSRX, ControlMode
 from wpilib import DigitalInput
 from typing import Optional
 from fusion.sensors import SensorService, Report, ReportError, Manager
@@ -118,6 +118,13 @@ class Indexer(Subsystem):
 
     def setBeltTicks(self, ticks:int = 0):
         # Angle in encoder ticks
-        self.belt_controller.set(TalonSRXControlMode.MotionMagic, ticks)
+        self.belt_controller.set(ControlMode.MotionMagic, ticks)
+
+    def set_belt_velocity(self, velocity):
+        self.belt_controller.set(ControlMode.Velocity, velocity)
+
+    def turn_off(self):
+        self.belt_controller.motorOff()
+
 
 
