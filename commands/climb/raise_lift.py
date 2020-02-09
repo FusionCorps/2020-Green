@@ -1,9 +1,10 @@
 from wpilib.command import InstantCommand
 from subsystems.climb import Climb
 
+
 class RaiseLift(Command):
     def __init__(self, distance):
-        super.__init__('RaiseLift')
+        super.__init__("RaiseLift")
         self.distance = distance
         self.requires(Climb())
 
@@ -21,4 +22,3 @@ class RaiseLift(Command):
         if Climb().climb_controller.get() == 0.0:
             return True
 
-    

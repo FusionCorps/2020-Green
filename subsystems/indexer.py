@@ -1,6 +1,6 @@
 from enum import Enum
 from time import sleep
-from typing import Optional
+from typing import Optional, List
 
 import ctre
 from ctre import ControlMode, WPI_TalonSRX
@@ -50,86 +50,49 @@ from fusion.sensors import Manager, Report, ReportError, SensorService
 
 
 class Indexer(Subsystem):
+    """Controlled ball manager.
+
+    Uses IR Light Breakage sensors to estimate ball position.
+    """
+
     _instance = None
 
-    MAX_SPEED = 5  # m/s
+    TALON_ID = 40
+    TALON_FPID = (0.0, 1.0, 0.0, 0.0)
+    TALON_MAX_VELOCITY = 5  # m/s
+    TALON_MAX_ACCELERATION = 2000  # ticks/100ms/s
 
-    TALON_ID = 11
-    TALON_ID = 11
-
-    FPID_TALON_BELT = (0.0, 1.0, 0.0, 0.0)
-
-    TARGET_VELOCITY = 10000  # ticks/100ms
-    MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
-
-    class BallState(Enum):
-        ENTERING = 0
-        BOTTOM_CORNER = 1
-        IN_CORNER = 2
-        VERTICAL_CORNER = 3
-        UNBUFFERED = 4
-        TOP = 5
-        SHOOTING = 6
-
-    class FakeBall:
-        def __init__(self):
-            self.state = Indexer.BallState.ENTERING
-
-        def change_state(self, new_state):
-            self.state = new_state
-
-        def return_state(self):
-            return self.state
-
-    class IndexerState(Enum):
-        RUNNING = 0  # Belts moving
-        NOT_READY = 1  # No ball at top
-        READY = 2  # Ball at top
-
-    """
-    Defines the motor IDs, beam IDs, and the State Enums for use later
-    The ball states and fake ball might or might not be outdated
-    """
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Indexer, cls).__init__(cls, *args, **kwargs)
+        return cls._instance
 
     def __init__(self):
-        self.belt_controller = ctre.WPI_TalonFX(Indexer.TALON_ID)
+        self._belt_controller = ctre.WPI_TalonFX(Indexer.TALON_ID)
 
-        self.ball_list = []
+        self._balls: List[Ball] = []
 
-        self.belt_controller.config_kP(0, Indexer.FPID_TALON_BELT[1])
-        self.belt_controller.config_kI(0, Indexer.FPID_TALON_BELT[2])
-        self.belt_controller.config_kD(0, Indexer.FPID_TALON_BELT[3])
+        self._belt_controller.config_kP(0, Indexer.TALON_FPID[1])
+        self._belt_controller.config_kI(0, Indexer.TALON_FPID[2])
+        self._belt_controller.config_kD(0, Indexer.TALON_FPID[3])
 
-        self.belt_controller.configMotionAcceleration(Indexer.MAX_MOTOR_ACCELERATION)
-        self.belt_controller.configMotionCruiseVelocity(Indexer.TARGET_VELOCITY)
-        self.belt_controller.configMotionSCurveStrength(
+        self._belt_controller.configMotionAcceleration(Indexer.TALON_MAX_ACCELERATION)
+        self._belt_controller.configMotionCruiseVelocity(Indexer.TARGET_VELOCITY)
+        self._belt_controller.configMotionSCurveStrength(
             1
         )  # Smoothness from 1 to 8 (integer) (1 is a trapezoid)
 
-        self.belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
+        self._belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
+    def set_belt(self, control_mode: ControlMode, value):
+        """Set the belt controller.
+
+        Args:
+            control_mode (ControlMode): Target ControlMode.
+            value: Corresponding value.
         """
-        Define all the break beams and motor controllers
-        Set the vertical ball count to 0
-        """
-
-    @staticmethod
-    def convert_ms_to_ticks(self, value: float) -> int:
-        pass
-
-    # def checkTop(self):
-    #     report = Manager().get(IRService.BreakReport)
-    #     return report[2]
-
-    def set_belt_ticks(self, ticks: int = 0):
-        # Angle in encoder ticks
-        self.belt_controller.set(ControlMode.MotionMagic, ticks)
-
-    def set_belt_velocity(self, velocity):
-        self.belt_controller.set(ControlMode.Velocity, velocity)
-
-    def set_belt_percentage(self, percentage):
-        self.belt_controller.set(ControlMode.Percentage, percentage)
+        self._belt_controller.set(control_mode, value)
 
     def turn_off(self):
-        self.belt_controller.motorOff()
+        self._belt_controller.motorOff()
+
