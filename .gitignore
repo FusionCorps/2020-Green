@@ -106,3 +106,8 @@ venv.bak/
 
 .vim/
 .undodir/
+.deploy_cfg
+.installer_config
+imgui.ini
+opkg_cache/
+pip_cache/
