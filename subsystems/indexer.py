@@ -24,7 +24,7 @@ class IRService(SensorService):
 
         self._exit_beam = DigitalInput(IRService.EXIT_BEAM_ID)
         self._top_beam = DigitalInput(IRService.TOP_BEAM_ID)
-        self._bottom_beam = DigitalInput(IRService.BOTTOM_BEAM_ID)
+        self._bottom_beam = DigitalInput(IRService.BOTTOM_BEND_BEAM_ID)
         self._entry_beam = DigitalInput(IRService.ENTRY_BEND_BEAM_ID)
 
         self.previous_state = (None, None, None, None)
