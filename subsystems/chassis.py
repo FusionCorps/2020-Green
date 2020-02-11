@@ -64,6 +64,14 @@ class Chassis(Subsystem):
     COLLISION_PEAK_TIME = 0.01  # s --- Time above peak before collision is registered
     JERK_POLL_RATE = 0.01  # s --- Sample rate of navX AHRS
 
+    PID_P = 1.0
+    PIP_I = 0.0
+    PIP_D = 0.0
+
+    TARGET_VELOCITY = 20000 # Encoder ticks per 100ms
+    ACCELERATION = 10000 # Encoder ticks per 100ms per s
+    S_CURVE_STRENGTH = 1 # Int from 1 to 8, 1 is trapezoidal, 8 is maximum smooth
+
     def __new__(cls):
         """
         Python dunder that controls the creation of an instance.
@@ -83,13 +91,29 @@ class Chassis(Subsystem):
         """
         Speed Controllers
         """
-        self._talon_f_r = WPI_TalonSRX(Chassis.TALON_F_R_ID)
-        self._talon_f_l = WPI_TalonSRX(Chassis.TOLON_F_L_ID)
-        self._talon_b_l = WPI_TalonSRX(Chassis.TALON_B_L_ID)
-        self._talon_b_r = WPI_TalonSRX(Chassis.TALON_B_R_ID)
+        self._talon_f_r = WPI_TalonFX(Chassis.TALON_F_R_ID)
+        self._talon_f_l = WPI_TalonFX(Chassis.TOLON_F_L_ID)
+        self._talon_b_l = WPI_TalonFX(Chassis.TALON_B_L_ID)
+        self._talon_b_r = WPI_TalonFX(Chassis.TALON_B_R_ID)
 
         self._left_motors = [self._talon_f_l, self._talon_f_r]
         self._right_motors = [self._talon_b_l, self._talon_b_r]
+
+        self._left_motors.config_kP(Chassis.PID_P)
+        self._left_motors.config_kI(Chassis.PIP_I)
+        self._left_motors.config_kD(Chassis.PIP_D)
+
+        self._left_motors.configCruiseVelocity(Chassis.TARGET_VELOCITY)
+        self._left_motors.configAcceleration(Chassis.ACCELERATION)
+        self._left_motors.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
+
+        self._right_motors.config_kP(Chassis.PID_P)
+        self._right_motors.config_kI(Chassis.PIP_I)
+        self._right_motors.config_kD(Chassis.PIP_D)
+
+        self._right_motors.configCruiseVelocity(Chassis.TARGET_VELOCITY)
+        self._right_motors.configAcceleration(Chassis.ACCELERATION)
+        self._right_motors.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
 
         self._drive = DifferentialDrive(self._left_motors, self._right_motors)
 
@@ -120,6 +144,13 @@ class Chassis(Subsystem):
     def joystick_drive(self, x_axis: int, y_axis: int) -> None:
         self._drive.curvatureDrive(x_axis, y_axis, True)
 
+    def set_motors_ticks(l_ticks: int, r_ticks: int):
+        self._left_motors.set(ControlMode.MotionMagic, l_ticks)
+        self._right_motors.set(ControlMode.MotionMagic, r_ticks)
+
+    def set_motors_velocity(l_velocity: int, r_velocity: int):
+        self._left_motors.set(ControlMode.Velocity, l_velocity)
+        self._right_motors.set(ControlMode.Velocity, r_velocity)
     @staticmethod
     def calculate_jerk(
         accel_last: float, accel_curr: float, tm_diff: timedelta
