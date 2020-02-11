@@ -8,4 +8,3 @@ class TurnOff(InstantCommand):
 
     def initialize(self):
         Hopper().turn_off()
-
