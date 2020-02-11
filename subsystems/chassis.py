@@ -88,8 +88,8 @@ class Chassis(Subsystem):
         self._talon_b_l = WPI_TalonSRX(Chassis.TALON_B_L_ID)
         self._talon_b_r = WPI_TalonSRX(Chassis.TALON_B_R_ID)
 
-        self._left_motors = [self._talon_f_l, self._talon_f_r]
-        self._right_motors = [self._talon_b_l, self._talon_b_r]
+        self._left_motors = [self._talon_b_l, self._talon_f_l]
+        self._right_motors = [self._talon_b_r, self._talon_f_r]
 
         self._drive = DifferentialDrive(self._left_motors, self._right_motors)
 
