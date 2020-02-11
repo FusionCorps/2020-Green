@@ -56,8 +56,6 @@ class Indexer(Subsystem):
     MAX_SPEED = 5  # m/s
     TALON_ID = 11
 
-    TALON_ID = 11
-
     TARGET_VELOCITY = 10000  # ticks/100ms
     MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
 
