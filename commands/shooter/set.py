@@ -4,12 +4,33 @@ from wpilib.command import InstantCommand, CommandGroup, Command
 from subsystems.shooter import Shooter
 
 
-class ToSpooling(CommandGroup):
+class Wait(CommandGroup):
     def __init__(self):
-        super().__init__("ToSpooling")
+        super().__init__("Wait")
+
         self.requires(Shooter())
 
-        self.previous_state = None
+    def initialize(self):
+        pass
+
+    def execute(self):
+        pass
+
+    def isFinished(self):
+        return False
+
+    def end(self):
+        pass
+
+
+class Spool(CommandGroup):
+    """Bring the Shooter up to speed.
+    """
+
+    def __init__(self):
+        super().__init__("Spooling")
+
+        self.requires(Shooter())
 
         self.addSequential(SetVelocity(Shooter.MAX_VELOCITY))
 
@@ -17,14 +38,13 @@ class ToSpooling(CommandGroup):
         self.previous_state = Shooter().get_state()
 
     def execute(self):
-        if Shooter()._talon_l.getSelectedSensorVelocity() == Shooter.MAX_VELOCITY:
-            pass
+        pass
 
     def isFinished(self):
-        pass
+        return Shooter().get_velocity() >= Shooter.MAX_VELOCITY
 
     def end(self):
-        pass
+        Wait().start()
 
 
 class SetVelocity(InstantCommand):

@@ -66,6 +66,9 @@ class Shooter(Subsystem):
     def get_state(self):
         return self._state
 
+    def get_velocity(self):
+        return self._talon_l.getSelectedSensorVelocity()
+
     @staticmethod
     def calculate_angular_velocity(
         distance: float, height: float, shooter_angle: float
