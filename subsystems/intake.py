@@ -6,7 +6,14 @@ from wpilib.drive import DifferentialDrive
 
 
 class Intake(Subsystem):
+    _instance = None
+
     ID_INTAKE_CONTROLLER = 0
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Intake, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
 
     def __init__(self):
         super().__init__("Intake")
