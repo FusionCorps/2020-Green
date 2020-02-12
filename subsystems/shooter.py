@@ -85,6 +85,8 @@ class Shooter(Subsystem):
         self._talon_turret.configAcceleration(10000)
         self._talon_turret.configSCurveStrength(1)
 
+        self._talon_turret.setSelectedSensorPosition(ctre.FeedbackDevice.CTRE_MagEncoder_Relative)
+
 
 
     def get_state(self):
@@ -129,6 +131,9 @@ class Shooter(Subsystem):
 
     def set(self, control_mode: ControlMode, value):
         self._talon_l.set(mode=control_mode, demand0=value)
+
+    def get(self):
+        self._talon_l.getSelectedSensorPosition()
     
     def set_turret(self, control_mode: ControlMode, value):
         self._talon_turret.set(mode=control_mode, demand0=value)

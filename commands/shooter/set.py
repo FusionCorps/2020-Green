@@ -1,8 +1,9 @@
 from ctre import ControlMode
 from wpilib.command import InstantCommand, CommandGroup, Command, Scheduler
 from commands.shooter.shoot import Shoot
-from subsystems.shooter import Shooter
+from subsystems.shooter import Shooter, Indexer
 from subsystems.indexer import IRService
+from fusion.sensors import Manager
 
 
 class ToSpooling(CommandGroup):
@@ -74,6 +75,16 @@ class ToShooting(CommandGroup):
     
     def end(self):
         Shooter().set_state(Shooter.State.SPOOLING)
+
+class SetDeltaPosition(InstantCommand):
+    def __init__(self, delta_pos):
+        super().__init__('SetDelta')
+        self.requires(Shooter())
+        self.dp = delta_pos
+
+    def initialize(self):
+        target_pos = Shooter().get() + self.dp
+        Shooter().set(ControlMode.MotionMagic, target_pos)
 
 
     

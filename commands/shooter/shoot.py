@@ -1,7 +1,8 @@
 from wpilib.command import Command
 from subsystems.shooter import Shooter
-from subsystems.indexer import Indexer
+from subsystems.indexer import Indexer, IRService, BreakReport
 from fusion.sensors import Manager
+from math import pi
 
 class Shoot(Command):
 
