@@ -10,6 +10,7 @@ from inspect import signature
 from queue import Empty, Full, Queue
 from time import sleep
 from typing import Dict, List, Tuple, Type
+from subsystems import Chassis
 
 import wpilib
 
@@ -327,51 +328,124 @@ def test_manager():
 #         pass
 
 
-# class CollisionService(SensorService):
-#     """
-#     Sensor Service tracking collision events using the NavX AHRS sensor
-#     collection.
+class CollisionService(SensorService):
+    """
+    Sensor Service tracking collision events using the NavX AHRS sensor
+    collection.
 
-#     NOTE: This class is a Singleton.
-#     """
+    NOTE: This class is a Singleton.
+    """
 
-#     _instance = None
+    _instance = None
 
-#     POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
+    POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
 
-#     class CollisionReport(Report):
-#         COLLISION_THRESHOLD = 0.5  # G -- Threshold for collisions
-#         COLLISION_PEAK_TIME = 0.01  # s -- Amt. of time measurements must be above threshold before registering a collision
+    class CollisionReport(Report):
+        COLLISION_THRESHOLD = 0.5  # G -- Threshold for collisions
+        COLLISION_PEAK_TIME = 0.01  # s -- Amt. of time measurements must be above threshold before registering a collision
 
-#         def __init__(self, service: SensorService):
-#             super().__init__(self)
+        JERK_POLL_RATE = 0.01  # s --- Sample rate of navX AHRS
+        POLL_RATE = 0.01  # s -- Maximum sample rate of AHRS sensor
 
-#             #  TODO: Collision Detection code goes here
-#             for a in service._x_jerk_samples:
-#                 pass
 
-#         def is_old(self) -> bool:
-#             return datetime.now() - self.collection_time < timedelta(seconds=1)
+        if service.previous_state == service.current_state:
+            raise ReportError("CollisionService", "No Changes")
 
-#     def __new__(cls, *args, **kwargs):
-#         if cls._instance is None:
-#             cls._instance = super(CollisionService, cls).__new__(cls, *args, **kwargs)
 
-#     def __init__(self):
-#         super(CollisionService, self).__init__()
+        def __init__(self, service: SensorService):
+            super().__init__(self)
 
-#         self._ahrs = AHRS(SPI.Port.kMXP)
+            with self._lock:
+                self._poll_jerk()
 
-#         # Arrays used because samples are ordered and of same type -- faster
-#         self._x_jerk_samples: array = array("f")
-#         self._y_jerk_samples: array = array("f")
-#         self._z_jerk_samples: array = array("f")
+                for idx, jerk_array in enumerate(self.current_samples):
+                    for i in range(len(jerk_array)):
+                        try:
 
-#         self._time_jerk_samples: List[datetime] = None
+                            self._block_time = 0
+                            self._block_size = 0
+                            while self._block_time < self.JERK_POLL_RATE:
+                                self._block_time = (
+                                    self.jerk_array[-i].collection_time
+                                    - self.jerk_array[-i - self._block_size].collection_time
+                                )
+                                self._block_size += 1
+                            if self.jerk_array[-i].collection_time - self.jerk_array[
+                                -i - self._block_size
+                            ].collection_time > timedelta(
+                                seconds=Chassis.COLLISION_PEAK_TIME
+                            ):  # Measurement time from sample to sample must be above the PEAK_TIME constant
+                                self._block_triggered = all(
+                                    map(
+                                        lambda j: j.mag_jerk > Chassis.COLLISION_THRESHOLD,
+                                        self.jerk_array[-i - 2 :],
+                                    )
+                                )  # Sets collision flag to whether all the jerk samples are above the threshold
 
-#         self._x_last_acceleration: float = 0.0
-#         self._y_last_acceleration: float = 0.0
-#         self._z_last_acceleration: float = 0.0
+                                self.block_count += 1
 
-#     def update(self):
-#         pass  # TODO
+                                if self.block_count > 3:
+                                    self._has_collided = True
+                                else:
+                                    self.block_count -= 2
+
+                                if self._has_collided:
+                                    self._timer.start()
+
+                                if self._timer.hasPeriodPassed(0.02):
+                                    self._has_collided = False
+                                    self._timer.reset()
+
+                                    break  # Breaks before searching whole sample list unnecessarily
+
+                        except IndexError:
+                            self._has_collided = False
+
+            sleep(JERK_POLL_RATE)  # Allows main thread to read from variables
+                #  TODO: Collision Detection code goes here
+
+        def update(self):
+            elapsed_time = (curr_time := datetime.now()) - self.jerk_array[
+                -1
+            ].collection_time  # timedelta since last poll
+
+            self.jerk_array = list(
+                filter(
+                    lambda j: datetime.now() - j.collection_time < timedelta(seconds=1),
+                    self.jerk_array,
+                )
+            )  # Throw out any samples older than 1 second
+            
+            self._x_jerk_samples.append(
+                self._x_jerk_samples(
+                    Chassis.calculate_jerk(
+                        self._x_last_acceleration,
+                        curr_x_accel := self._ahrs.getWorldLinearAccelX(),
+                        elapsed_time,
+                    ),  
+                )  
+            )  # Add the new x jerk samples
+            
+            self._y_jerk_samples.append(
+                self._y_jerk_samples(
+                    Chassis.calculate_jerk(
+                        self._y_last_acceleration,
+                        curr_y_accel := self._ahrs.getWorldLinearAccelY(),
+                        elapsed_time,
+                    ),    
+                )
+            )  # Add the new y jerk samples
+
+            self._z_jerk_samples.append(
+                self._z_jerk_samples(
+                    Chassis.calculate_jerk(
+                        self._z_last_acceleration,
+                        curr_z_accel := self._ahrs.getWorldLinearAccelZ(),
+                        elapsed_time,
+                    ),    
+                )  
+            ) # Add the new z jerk samples
+
+            self._x_last_acceleration = curr_x_accel
+            self._y_last_acceleration = curr_y_accel
+            self._z_last_acceleration = curr_z_accel
