@@ -99,21 +99,23 @@ class Chassis(Subsystem):
         self._left_motors = [self._talon_f_l, self._talon_f_r]
         self._right_motors = [self._talon_b_l, self._talon_b_r]
 
-        self._left_motors.config_kP(Chassis.PID_P)
-        self._left_motors.config_kI(Chassis.PIP_I)
-        self._left_motors.config_kD(Chassis.PIP_D)
+        for motor in self._left_motors:
+            motor.config_kP(Chassis.PID_P)
+            motor.config_kI(Chassis.PIP_I)
+            motor.config_kD(Chassis.PIP_D)
 
-        self._left_motors.configCruiseVelocity(Chassis.TARGET_VELOCITY)
-        self._left_motors.configAcceleration(Chassis.ACCELERATION)
-        self._left_motors.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
+            motor.configCruiseVelocity(Chassis.TARGET_VELOCITY)
+            motor.configAcceleration(Chassis.ACCELERATION)
+            motor.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
 
-        self._right_motors.config_kP(Chassis.PID_P)
-        self._right_motors.config_kI(Chassis.PIP_I)
-        self._right_motors.config_kD(Chassis.PIP_D)
+        for motor in self._right_motors:
+            motor.config_kP(Chassis.PID_P)
+            motor.config_kI(Chassis.PIP_I)
+            motor.config_kD(Chassis.PIP_D)
 
-        self._right_motors.configCruiseVelocity(Chassis.TARGET_VELOCITY)
-        self._right_motors.configAcceleration(Chassis.ACCELERATION)
-        self._right_motors.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
+            motor.configCruiseVelocity(Chassis.TARGET_VELOCITY)
+            motor.configAcceleration(Chassis.ACCELERATION)
+            motor.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
 
         self._drive = DifferentialDrive(self._left_motors, self._right_motors)
 
@@ -145,6 +147,8 @@ class Chassis(Subsystem):
         self._drive.curvatureDrive(x_axis, y_axis, True)
 
     def set_motors_ticks(l_ticks: int, r_ticks: int):
+        r_ticks = r_ticks + self._right_motors.getSelectedSensorPosition()
+        l_ticks = l_ticks + self._left_motors.getSelectedSensorPosition()
         self._left_motors.set(ControlMode.MotionMagic, l_ticks)
         self._right_motors.set(ControlMode.MotionMagic, r_ticks)
 
