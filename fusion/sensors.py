@@ -355,6 +355,40 @@ class CollisionService(SensorService):
         def __init__(self, service: SensorService):
             super().__init__(self)
 
+            @staticmethod
+            def calculate_jerk(
+                accel_last: float, accel_curr: float, tm_diff: timedelta
+            ) -> float:
+                """
+                Calculate jerk given a difference in acceleration and a timedelta
+
+                Args:
+                    accel_last (float): previous acceleration
+                    accel_curr (float): new acceleration
+                    tm_diff (timedelta): time between the measurement of the last and new acceleration
+
+                Returns:
+                    float: jerk in Gs
+                """
+
+                try:
+                    return abs(accel_last - accel_curr) / tm_diff.total_seconds()
+                except ZeroDivisionError:
+                    return 0.0
+            
+            @property
+            def collided(self) -> bool:
+                """
+                Whether the chassis has detected a collision recently or not
+
+                Returns:
+                bool: whether a collision has occurred
+                """
+
+                with self._lock:
+                    return self._has_collided
+
+
             with self._lock:
                 self._poll_jerk()
 
