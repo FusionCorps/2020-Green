@@ -1,12 +1,11 @@
 from wpilib.command import Subsystem
 from wpilib import DigitalInput
-from ctre import WPI_TalonSRX, ControlMode
+from ctre import WPI_TalonFX, ControlMode
 from enum import Enum
 from fusion.sensors import SensorService, Manager, Report, ReportError
 import math
 
-class UltrasoundService()
-    
+class UltrasoundService():
     SENSOR_L_ID = 'C3'
     SENSOR_R_ID = 'C4'
     
@@ -46,15 +45,17 @@ class Climb(Subsystem):
         LIFTING = 4 # Lowering while lifting the robot up
 
     def __init__(self):
-        self.climb_controller = WPI_TalonSRX(Climb.TALON_ID)
+        self.climb_speed = WPI_TalonFX(Climb.TALON_ID)
         self.state = Climb.ClimbState.LOWERED
+        self.climb_power = WPI_TalonFX(Climb.TALON_ID)
 
-        self.climb_controller.config_kP(Climb.CLIMB_P)
-        self.climb_controller.config_kI(Climb.CLIMB_I)
-        self.climb_controller.config_kD(Climb.CLIMB_D)
-        self.climb_controller.configAcceleration(Climb.ACCEL)
-        self.climb_controller.configCruiseVelocity(Climb.DEFAULT_SPEED)
-        self.climb_controller.configSCurveStrength(Climb.S_CURVE_STRENGTH)
+        for climb_controller in [self.climb_speed, self.climb_power]:
+            climb_controller.config_kP(Climb.CLIMB_P)
+            climb_controller.config_kI(Climb.CLIMB_I)
+            climb_controller.config_kD(Climb.CLIMB_D)
+            climb_controller.configAcceleration(Climb.ACCEL)
+            climb_controller.configCruiseVelocity(Climb.DEFAULT_SPEED)
+            climb_controller.configSCurveStrength(Climb.S_CURVE_STRENGTH)
 
         # TODO : Add feed-forward looping
 
@@ -73,9 +74,21 @@ class Climb(Subsystem):
         height = (2.83 - 1.56*sin(alpha + theta) + (1.41 + distance)*sin(theta))
         return height
     
-    def turn_ticks(self, ticks:int):
-        self.climb_controller.set(ControlMode.MotionMagic, ticks)
+    def set_speed_motor(self, mode: ControlMode, value):
+        self.climb_speed.set(mode, value)
 
-    def turn_off(self):
-        self.climb_controller.motorOff()
+    def set_power_motor(self, mode: ControlMode, value):
+        self.climb_power.set(mode, value)
+    
+    def get_speed_motor(self):
+        return self.climb_speed.get()
+
+    def get_power_motor(self):
+        return self.climb_power.get()
+
+    def turn_off_power(self):
+        self.climb_power.motorOff()
+
+    def turn_off_speed(self):
+        self.climb_speed.motorOff()
 
