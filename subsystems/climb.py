@@ -37,6 +37,8 @@ class Climb(Subsystem):
     CLIMB_I = 0.0
     CLIMB_D = 0.0
 
+    TICKS_TO_FULL = 19456 # ticks
+
     class ClimbState(Enum):
         LOWERED = 0
         RAISED = 1
