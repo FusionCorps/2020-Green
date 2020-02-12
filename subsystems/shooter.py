@@ -21,6 +21,13 @@ class Shooter(Subsystem):
     PID_D_TALON_LEFT = 0.0
     PID_F_TALON_LEFT = 0.0
 
+    ID_TALON_TURRET = 14
+
+    PIP_P_TALON_TURRRET = 1.0
+    PIP_I_TALON_TURRRET = 0.0
+    PIP_D_TALON_TURRRET = 0.0
+    PIP_F_TALON_TURRRET = 0.0
+
     MAX_VELOCITY = 20480  # encoder ticks/100ms
 
     class State(enum.Enum):
@@ -62,7 +69,23 @@ class Shooter(Subsystem):
         self._talon_l.config_kI(Shooter.PID_I_TALON_LEFT)
         self._talon_l.config_kD(Shooter.PID_D_TALON_LEFT)
 
+        self._talon_l.configCruiseVelocity(20000)
+        self._talon_l.configAcceleration(10000)
+        self._talon_l.configSCurveStrength(1)
+
         self._talon_l.setSelectedSensorPosition(0)  # Zero the magnetic encoder
+
+        self._talon_turret = WPI_TalonFX(Shooter.ID_TALON_TURRET)
+
+        self._talon_turret.config_kP(Shooter.PID_P_TALON_LEFT)
+        self._talon_turret.config_kI(Shooter.PID_I_TALON_LEFT)
+        self._talon_turret.config_kD(Shooter.PID_D_TALON_LEFT)        
+
+        self._talon_turret.configCruiseVelocity(20000)
+        self._talon_turret.configAcceleration(10000)
+        self._talon_turret.configSCurveStrength(1)
+
+
 
     def get_state(self):
         return self._state
@@ -106,4 +129,7 @@ class Shooter(Subsystem):
 
     def set(self, control_mode: ControlMode, value):
         self._talon_l.set(mode=control_mode, demand0=value)
+    
+    def set_turret(self, control_mode: ControlMode, value):
+        self._talon_turret.set(mode=control_mode, demand0=value)
 
