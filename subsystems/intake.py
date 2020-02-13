@@ -5,8 +5,20 @@ class Intake(Subsystem):
 
     VICTOR_ID = 9
 
+    INTAKE_PIDF = (1.0, 0.0 , 0.0, 0.0)
+    INTAKE_VEL_ACCEL_CURVE = (20000, 10000, 1)
+
     def __init__(self):
         self.intake_controller = VictorSPX(Intake.VICTOR_ID)
+
+        self.intake_controller.config_kP(Intake.INTAKE_PIDF[0])
+        self.intake_controller.config_kI(Intake.INTAKE_PIDF[1])
+        self.intake_controller.config_kD(Intake.INTAKE_PIDF[2])
+        self.intake_controller.config_kF(Intake.INTAKE_PIDF[3])
+        
+        self.intake_controller.configCruiseVelocity(Intake.INTAKE_VEL_ACCEL_CURVE[0])
+        self.intake_controller.configAcceleration(Intake.INTAKE_VEL_ACCEL_CURVE[1])
+        self.intake_controller.configSCurveStrength(Intake.INTAKE_VEL_ACCEL_CURVE[2])
 
     def set_intake(self, velocity:float):
         # Velocity is in ticks/100ms
