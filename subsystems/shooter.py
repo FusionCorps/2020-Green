@@ -16,17 +16,15 @@ class Shooter(Subsystem):
     ID_TALON_LEFT = 0
     ID_TALON_RIGHT = 1
 
-    PID_P_TALON_LEFT = 1.0
-    PID_I_TALON_LEFT = 0.0
-    PID_D_TALON_LEFT = 0.0
-    PID_F_TALON_LEFT = 0.0
+    TALON_LEFT_FPID = (0.0, 1.0, 0.0, 0.0)
+    TALON_RIGHT_FPID = (0.0, 1.0, 0.0, 0.0)
+    TALON_TURRET_FPID = (0.0, 1.0, 0.0, 0.0)
 
     ID_TALON_TURRET = 14
 
-    PIP_P_TALON_TURRRET = 1.0
-    PIP_I_TALON_TURRRET = 0.0
-    PIP_D_TALON_TURRRET = 0.0
-    PIP_F_TALON_TURRRET = 0.0
+
+
+
 
     MAX_VELOCITY = 20480  # encoder ticks/100ms
 
@@ -65,9 +63,9 @@ class Shooter(Subsystem):
         self.target_velocity = 20000 # Ticks/100ms
 
         """PIDF Constants"""
-        self._talon_l.config_kP(Shooter.PID_P_TALON_LEFT)
-        self._talon_l.config_kI(Shooter.PID_I_TALON_LEFT)
-        self._talon_l.config_kD(Shooter.PID_D_TALON_LEFT)
+        self._talon_l.config_kP(Shooter.TALON_LEFT_FPID[1])
+        self._talon_l.config_kI(Shooter.TALON_LEFT_FPID[2])
+        self._talon_l.config_kD(Shooter.TALON_LEFT_FPID[3])
 
         self._talon_l.configCruiseVelocity(20000)
         self._talon_l.configAcceleration(10000)
@@ -77,9 +75,9 @@ class Shooter(Subsystem):
 
         self._talon_turret = WPI_TalonFX(Shooter.ID_TALON_TURRET)
 
-        self._talon_turret.config_kP(Shooter.PID_P_TALON_LEFT)
-        self._talon_turret.config_kI(Shooter.PID_I_TALON_LEFT)
-        self._talon_turret.config_kD(Shooter.PID_D_TALON_LEFT)        
+        self._talon_turret.config_kP(Shooter.TALON_TURRET_FPID[1])
+        self._talon_turret.config_kI(Shooter.TALON_TURRET_FPID[2])
+        self._talon_turret.config_kD(Shooter.TALON_TURRET_FPID[3])        
 
         self._talon_turret.configCruiseVelocity(20000)
         self._talon_turret.configAcceleration(10000)
