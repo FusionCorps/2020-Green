@@ -1,4 +1,4 @@
-import math
+from math import atan, sin
 from wpilib.command import Subsystem
 from wpilib import DigitalInput
 from ctre import WPI_TalonFX, ControlMode
