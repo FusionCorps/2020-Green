@@ -37,6 +37,8 @@ class Climb(Subsystem):
     CLIMB_I = 0.0
     CLIMB_D = 0.0
 
+    TICKS_TO_FULL = 19456 # ticks
+
     class ClimbState(Enum):
         LOWERED = 0
         RAISED = 1
@@ -56,6 +58,8 @@ class Climb(Subsystem):
             climb_controller.configAcceleration(Climb.ACCEL)
             climb_controller.configCruiseVelocity(Climb.DEFAULT_SPEED)
             climb_controller.configSCurveStrength(Climb.S_CURVE_STRENGTH)
+            
+            climb_controller.setSelectedSensorValue(0) # Zero
 
         # TODO : Add feed-forward looping
 
