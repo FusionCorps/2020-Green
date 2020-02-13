@@ -1,5 +1,6 @@
 from wpilib.command import Command
 from subsystems.climb import Climb
+from ctre import ControlMode
 
 class Climb(Command):
     def __init__(self):
@@ -7,7 +8,7 @@ class Climb(Command):
         self.requires(Climb())
 
     def initialize(self):
-        Climb().set_power_motor(0)
+        Climb().set_power_motor(ControlMode.MotionMagic, 0)
 
     def isFinished(self):
         if Climb().get_power_motor() == 0:
