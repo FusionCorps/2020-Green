@@ -19,6 +19,14 @@ class ShiftOneForward(Command):
     def initialize(self):
         if not Indexer().check_top() or self.pass_check:
             Indexer().set_belt_ticks(REQUIRED_TICKS)
+            for ball in Indexer().ball_list:
+                ball += 1
+                if ball == 6:
+                    Indexer().ball_list.pop()
+                if Indexer().check_entry():
+                    Indexer().ball_list.insert(1)
+            
+                
 
     def isFinished(self):
         if Indexer().belt_controller.get() == 0:
@@ -35,6 +43,10 @@ class ShiftOneBack(Command):
 
     def initialize(self):
         Indexer().set_belt_ticks(-1*(ShiftOneForward.REQUIRED_TICKS))
+        for ball in Indexer().ball_list:
+            ball -= 1
+            if ball == 0:
+                Indexer().ball_list.pop(0)
 
     def isFinished(self):
         if Indexer().belt_controller.get() == 0:
