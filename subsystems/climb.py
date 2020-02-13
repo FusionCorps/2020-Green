@@ -47,11 +47,11 @@ class Climb(Subsystem):
         LIFTING = 4 # Lowering while lifting the robot up
 
     def __init__(self):
-        self.climb_speed = WPI_TalonFX(Climb.TALON_ID)
+        self.extend_controller = WPI_TalonFX(Climb.TALON_ID)
         self.state = Climb.ClimbState.LOWERED
-        self.climb_power = WPI_TalonFX(Climb.TALON_ID)
+        self.climb_controller = WPI_TalonFX(Climb.TALON_ID)
 
-        for climb_controller in [self.climb_speed, self.climb_power]:
+        for climb_controller in [self.extend_controller, self.climb_controller]:
             climb_controller.config_kP(Climb.CLIMB_P)
             climb_controller.config_kI(Climb.CLIMB_I)
             climb_controller.config_kD(Climb.CLIMB_D)
@@ -79,20 +79,20 @@ class Climb(Subsystem):
         return height
     
     def set_speed_motor(self, mode: ControlMode, value):
-        self.climb_speed.set(mode, value)
+        self.extend_controller.set(mode, value)
 
     def set_power_motor(self, mode: ControlMode, value):
-        self.climb_power.set(mode, value)
+        self.climb_controller.set(mode, value)
     
     def get_speed_motor(self):
-        return self.climb_speed.get()
+        return self.extend_controller.get()
 
     def get_power_motor(self):
-        return self.climb_power.get()
+        return self.climb_controller.get()
 
     def turn_off_power(self):
-        self.climb_power.motorOff()
+        self.climb_controller.motorOff()
 
     def turn_off_speed(self):
-        self.climb_speed.motorOff()
+        self.extend_controller.motorOff()
 
