@@ -8,10 +8,10 @@ class Climb(Command):
         self.requires(Climb())
 
     def initialize(self):
-        Climb().set_power_motor(ControlMode.MotionMagic, 0)
+        Climb().set_climb_motor(ControlMode.MotionMagic, 0)
 
     def isFinished(self):
-        if Climb().get_power_motor() == 0:
+        if Climb().get_climb_motor() == 0:
             return True
 
     def end(self):
