@@ -1,6 +1,7 @@
 from wpilib.command import Command
 from subsystems.indexer import Indexer, IRService
 from fusion.sensors import SensorService, Report, ReportError, Manager
+from math import pi
 
 
 class ShiftOneForward(Command):
@@ -10,12 +11,13 @@ class ShiftOneForward(Command):
 
     REQUIRED_TICKS = BALL_DIAMETER*2048/2/pi/0.009525
 
-    def __init__(self):
+    def __init__(self, pass_check:bool = False):
         super().__init__(__name__)
         self.requires(Indexer())
+        self.pass_check = pass_check
 
     def initialize(self):
-        if not Indexer().check_top():
+        if not Indexer().check_top() or self.pass_check:
             Indexer().set_belt_ticks(REQUIRED_TICKS)
 
     def isFinished(self):
@@ -32,10 +34,10 @@ class ShiftOneBack(Command):
         self.requires(Indexer())
 
     def initialize(self):
-        Indexer().set_belt_ticks(-1*(REQUIRED_TICKS))
+        Indexer().set_belt_ticks(-1*(ShiftOneForward.REQUIRED_TICKS))
 
     def isFinished(self):
         if Indexer().belt_controller.get() == 0:
-            retrun True
+            return True
 
     
