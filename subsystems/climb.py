@@ -3,7 +3,7 @@ from wpilib import DigitalInput
 from ctre import WPI_TalonFX, ControlMode
 from enum import Enum
 from fusion.sensors import SensorService, Manager, Report, ReportError
-import math
+from math import atan, sin
 
 class UltrasoundService():
     SENSOR_L_ID = 'C3'
