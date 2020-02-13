@@ -27,15 +27,14 @@ class UltrasoundService():
 
 class Climb(Subsystem):
 
-    TALON_ID = 14 
+    TALON_ID = 14
+
+    EXTEND_FPID = (0.0, 1.0, 0.0, 0.0)
+    CLIMB_FPID = (0.0, 1,0, 0.0, 0.0)
 
     DEFAULT_SPEED = 10000 # encoder ticks per 100 ms
     ACCEL = 2000 # encode ticks per 100 ms per s
     S_CURVE_STRENGTH = 1 # Int between 1 and 8, with 1 being trapezoidal, and 8 being maximum smooth
-
-    CLIMB_P = 1.0
-    CLIMB_I = 0.0
-    CLIMB_D = 0.0
 
     TICKS_TO_FULL = 19456 # ticks
 
@@ -55,6 +54,7 @@ class Climb(Subsystem):
             climb_controller.config_kP(Climb.CLIMB_P)
             climb_controller.config_kI(Climb.CLIMB_I)
             climb_controller.config_kD(Climb.CLIMB_D)
+
             climb_controller.configAcceleration(Climb.ACCEL)
             climb_controller.configCruiseVelocity(Climb.DEFAULT_SPEED)
             climb_controller.configSCurveStrength(Climb.S_CURVE_STRENGTH)
