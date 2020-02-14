@@ -8,5 +8,6 @@ class VirtualBall():
         INDEXER = 2
         SHOOTER = 3
 
-    def __init__(self):
+    def __init__(self, pos = None):
         self.state = VirtualBall.BallState.INTAKE 
+        self.pos = pos # Indexer position
