@@ -20,6 +20,8 @@ class Intake(Subsystem):
         self.intake_controller.configAcceleration(Intake.INTAKE_VEL_ACCEL_CURVE[1])
         self.intake_controller.configSCurveStrength(Intake.INTAKE_VEL_ACCEL_CURVE[2])
 
+        self.ball_list = []
+
     def set_intake(self, velocity:float):
         # Velocity is in ticks/100ms
         self.intake_controller.set(ControlMode.Velocity, velocity)
