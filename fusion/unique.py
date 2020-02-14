@@ -32,6 +32,7 @@ class Unique:
 
     Note:
         Unique classes can inherit from superclasses without problems.
+        DO NOT, however, try to use a Unique class as a base class.
 
         Performance may be an issue in the future due to the lookups required
         to use a unique class and/or the large keys needed.
