@@ -1,4 +1,5 @@
 from wpilib.command import Command
+from subsystems import shooter
 from subsystems.shooter import Shooter
 from subsystems.indexer import Indexer, IRService, BreakReport
 from fusion.sensors import Manager
@@ -13,13 +14,13 @@ class Shoot(Command):
 
     def __init__(self):
         super().__init__(__name__)
-        self.requires(Shooter())
+        self.requires(shooter)
         self.requires(Indexer())
 
     def initialize(self):
-        if Shooter().state == Shooter().State.WAITING:
+        if shooter.state == shooter.State.WAITING:
             Indexer().set_belt_ticks(Shoot.REQUIRED_TICKS)
-            Shooter().state = Shooter().State.SHOOTING
+            shooter.state = shooter.State.SHOOTING
 
     def execute(self):
         # Check if belt is still moving
@@ -31,7 +32,7 @@ class Shoot(Command):
             return True
     
     def end(self):
-        Shooter().state = Shooter().State.SPOOLING
+        shooter.state = shooter.State.SPOOLING
 
     
 

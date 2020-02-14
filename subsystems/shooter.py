@@ -135,4 +135,6 @@ class Shooter(Subsystem):
     
     def set_turret(self, control_mode: ControlMode, value):
         self._talon_turret.set(mode=control_mode, demand0=value)
+    
+    shooter = Shooter()
 

@@ -1,28 +1,28 @@
 from subsystems.shooter import Shooter
 from wpilib.command import Command
+from subsystems import shooter
 
 
 class FullShoot(Command):
 
     def __init__(self):
         super().__init__('FullShoot')
-        self.requires(Shooter())
+        self.requires(shooter)
 
     def initialize(self):
-        self.requires(Shooter())
-        if Shooter().get_state() == Shooter().State.STOPPED:
-            Shooter().set_motors_percentage(1.0)
-            Shooter().state = Shooter().State.SPOOLING
+        self.requires(shooter)
+        if shooter.get_state() == shooter.State.STOPPED:
+            shooter.set_motors_percentage(1.0)
+            shooter.state = shooter.State.SPOOLING
 
     def execute(self):
-        
-    
+        pass
 
     def isFinished(self):
         pass
 
     def end(self):
-        Shooter().set_motors_percentage()
+        shooter.set_motors_percentage()
 
     def interrupted(self):
         pass
