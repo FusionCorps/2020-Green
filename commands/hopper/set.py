@@ -1,11 +1,11 @@
 from ctre import ControlMode
 from wpilib.command import InstantCommand
 
-from fusion.unique import unique
+from fusion.unique import Unique
 from subsystems import Hopper
 
 
-@unique
+@Unique
 class SetPercentage(InstantCommand):
     def __init__(self, percentage: float):
         super().__init__("SetPercentage")

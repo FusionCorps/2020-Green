@@ -2,10 +2,10 @@ import ctre
 from ctre import ControlMode
 from wpilib.command import Subsystem
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Indexer(Subsystem):
     """Controlled ball manager.
 

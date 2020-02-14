@@ -1,10 +1,10 @@
 from wpilib.command import InstantCommand
 from subsystems import Indexer
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class SetVelocity(InstantCommand):
     def __init__(self, velocity):
         super().__init__(__name__)
@@ -16,7 +16,7 @@ class SetVelocity(InstantCommand):
         Indexer().set_belt_velocity(self.velocity)
 
 
-@unique
+@Unique
 class SetPercentage(InstantCommand):
     def __init__(self, percentage):
         super().__init__("SetPercentage")
@@ -28,7 +28,7 @@ class SetPercentage(InstantCommand):
         Indexer().set_belt_percentage(self.percentage)
 
 
-@unique
+@Unique
 class SetPosition(InstantCommand):
     def __init__(self, ticks):
         super().__init__("SetPosition")

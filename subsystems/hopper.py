@@ -2,10 +2,10 @@ from wpilib.command import Subsystem
 
 from ctre import WPI_VictorSPX, ControlMode
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Hopper(Subsystem):
     ID_HOPPER_CONTROLLER = 0
 

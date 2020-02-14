@@ -1,10 +1,10 @@
 from ctre import ControlMode, WPI_VictorSPX
 from wpilib.command import Subsystem
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Intake(Subsystem):
     ID_INTAKE_CONTROLLER = 0
 
@@ -17,6 +17,6 @@ class Intake(Subsystem):
         self._intake_controller.set(control_mode, value)
 
     def initDefaultCommand(self):
-        from commands import SetJoystick
+        from commands.intake import SetJoystick
 
-        self.setDefaultCommand(SetJoystick)
+        self.setDefaultCommand(SetJoystick())

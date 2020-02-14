@@ -1,10 +1,13 @@
-from ctre import ControlMode
 from math import pi
+
+from ctre import ControlMode
 from wpilib.command import Command
-from subsystems.indexer import Indexer, IRService
-from fusion.sensors import SensorService, Report, ReportError, Manager
+
+from fusion.unique import Unique
+from subsystems import Indexer
 
 
+@Unique
 class ShiftOverOneSlot(Command):
     BALL_DIAMETER = 0.2  # m
     WHEEL_RADIUS = 0.009525
@@ -18,7 +21,7 @@ class ShiftOverOneSlot(Command):
 
     def initialize(self):
         Indexer().zero_encoder()
-        Indexer().set_belt(ControlMode.Position, REQUIRED_TICKS)
+        Indexer().set_belt(ControlMode.Position, ShiftOverOneSlot.REQUIRED_TICKS)
 
     def isFinished(self):
         if Indexer().get_position() == ShiftOverOneSlot.REQUIRED_TICKS:
@@ -26,4 +29,3 @@ class ShiftOverOneSlot(Command):
 
     def end(self):
         pass
-

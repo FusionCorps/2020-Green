@@ -1,11 +1,11 @@
 from wpilib.command import Command
 
-from fusion.unique import unique
+from fusion.unique import Unique
 from inputs import xbox_controller
 from subsystems import Chassis
 
 
-@unique
+@Unique
 class JoystickDrive(Command):
     def __init__(self):
         super().__init__(name="JoystickDrive", timeout=0.0, subsystem=Chassis())

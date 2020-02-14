@@ -1,10 +1,10 @@
 from wpilib.command import Command
 
-from fusion.unique import unique
+from fusion.unique import Unique
 from subsystems import Indexer, Shooter
 
 
-@unique
+@Unique
 class Shoot(Command):
     def __init__(self):
         super().__init__(__name__)
@@ -13,7 +13,7 @@ class Shoot(Command):
     def initialize(self):
         if Shooter().state == Shooter().State.WAITING:
             Indexer().set_vert_belt(True, 2000)
-            Shooter().state = Shooter().State.SHOOTING
+            Shooter().state = Shooter().ShooterState.SHOOTING
 
     def execute(self):
         # Check if belt is still moving
@@ -26,4 +26,4 @@ class Shoot(Command):
         #     return True
 
     def end(self):
-        Shooter().state = Shooter().State.WAITING
+        Shooter().state = Shooter().ShooterState.WAITING

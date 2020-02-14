@@ -5,10 +5,10 @@ from ctre import WPI_TalonSRX
 from wpilib.command import Subsystem
 from wpilib.drive import DifferentialDrive
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Chassis(Subsystem):
     """
     Singleton subsystem containing all driving functionality.
@@ -49,4 +49,4 @@ class Chassis(Subsystem):
     def initDefaultCommand(self):
         from commands.chassis import JoystickDrive
 
-        self.setDefaultCommand(JoystickDrive)
+        self.setDefaultCommand(JoystickDrive())

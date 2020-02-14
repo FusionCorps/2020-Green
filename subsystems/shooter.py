@@ -4,10 +4,10 @@ from math import cos, pi, sin, sqrt
 import ctre
 from wpilib.command import Subsystem
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Shooter(Subsystem):
     ANGLE = pi / 2
 
@@ -21,7 +21,7 @@ class Shooter(Subsystem):
 
     MAX_VELOCITY = 20480  # encoder ticks/100ms
 
-    class State(Enum):
+    class ShooterState(Enum):
         STOPPED = 0  # Wheel stopped
         SPOOLING = 1  # Wheel speeding up
         WAITING = 2  # Wheel at speed; waiting for ball
@@ -31,7 +31,7 @@ class Shooter(Subsystem):
     def __init__(self):
         super().__init__("Shooter")
 
-        self._state = Shooter.State.STOPPED
+        self._state = Shooter.ShooterState.STOPPED
 
         self._talon_l = ctre.WPI_TalonFX(Shooter.ID_TALON_LEFT)
         self._talon_r = ctre.WPI_TalonFX(Shooter.ID_TALON_RIGHT)
@@ -46,9 +46,7 @@ class Shooter(Subsystem):
 
         self._talon_r.follow(self._talon_l)  # Makes left motor the master controller
 
-        # TODO Check what Peak Nominal and Output configs do and add them
-
-        """FPID Constants"""
+        # FPID Constants
         self._talon_l.config_kP(0, Shooter.PID_P_TALON_LEFT)
         self._talon_l.config_kI(0, Shooter.PID_I_TALON_LEFT)
         self._talon_l.config_kD(0, Shooter.PID_D_TALON_LEFT)

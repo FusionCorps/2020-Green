@@ -1,13 +1,17 @@
-def unique(cls):
+"""Functionality for a class decorator for unique instances.
+"""
+
+
+class Unique:
     """Unique class decorator.
 
     This decorator will store instances of a *unique* class---classes that
     can only have one instance corresponding to a set of arguments.
 
     ```python
-    from unique import unique
+    from unique import Unique
 
-    @unique
+    @Unique
     class Test:
         cls_val = 0
 
@@ -32,31 +36,38 @@ def unique(cls):
         Performance may be an issue in the future due to the lookups required
         to use a unique class and/or the large keys needed.
     """
-    instances = {}  # Stores all instances
 
-    # def get_instance(*args, **kwargs):
-    #     # frozenset must be used so that dict keys are hashable
-    #     if (
-    #         cls,
-    #         frozen_args := frozenset(args),
-    #         frozen_kwargs := frozenset(kwargs),
-    #     ) not in instances.keys():
-    #         instances[(cls, frozen_args, frozen_kwargs)] = cls(*args, **kwargs)
-    #     return instances[(cls, frozen_args, frozen_kwargs)]
+    def __init__(self, unique_class):
+        self.instances = {}
+        self.unique_class = unique_class
 
-    def get_instance(*args, **kwargs):
-        if not instances.get(
-            (cls, f_args := frozenset(args), f_kwargs := frozenset(kwargs))
+    def __call__(self, *args, **kwargs):
+        # frozenset used to ensure keys are hashable
+        if not self.instances.get(
+            (
+                self.unique_class,
+                f_args := frozenset(args),
+                f_kwargs := frozenset(kwargs),
+            )
         ):
-            instances[(cls, f_args, f_kwargs)] = cls(*args, **kwargs)
-        return instances[(cls, f_args, f_kwargs)]
+            # Adds an instance of the wrapped class if it doesn't exist in instances
+            self.instances[(self.unique_class, f_args, f_kwargs)] = self.unique_class(
+                *args, **kwargs
+            )
+        return self.instances[(self.unique_class, f_args, f_kwargs)]
 
-    return get_instance
+    def __getattr__(self, name):
+        # Overloaded to access wrapped class attributes
+        return object.__getattribute__(self.unique_class, name)
 
 
 def test_ok():
-    @unique
+    @Unique
     class Test:
+        """
+        Hello.
+        """
+
         cls_val = 0
 
         def __init__(self, val):
@@ -84,7 +95,7 @@ def test_inheritance():
         def __init__(self, super_val):
             self.super_val = super_val
 
-    @unique
+    @Unique
     class Test(SuperClass):
         cls_val = 0
 
@@ -113,7 +124,7 @@ def test_inheritance():
 
 
 # def test_subclass():
-#     @unique
+#     @Unique
 #     class Test:
 #         cls_val = 0
 

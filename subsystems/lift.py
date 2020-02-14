@@ -1,9 +1,9 @@
 from wpilib.command import Subsystem
 
-from fusion.unique import unique
+from fusion.unique import Unique
 
 
-@unique
+@Unique
 class Lift(Subsystem):
     def __init__(self):
         super().__init__("Lift")
