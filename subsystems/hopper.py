@@ -26,4 +26,6 @@ class Hopper(Subsystem):
     def turn_off(self):
         self.hopper_controller.motorOff()
 
+    hopper = Hopper()
+
     

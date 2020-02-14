@@ -1,10 +1,11 @@
+
 from wpilib.command import InstantCommand
-from subsystems.hopper import Hopper
+from subsystems import hopper
 
 class TurnOff(InstantCommand):
     def __init__(self):
         super().__init__('TurnOff')
-        self.requires(Hopper())
+        self.requires(hopper)
 
     def initialize(self):
-        Hopper().turn_off()
+        hopper.turn_off()
