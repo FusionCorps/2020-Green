@@ -2,7 +2,7 @@ from wpilib.command import Command
 from subsystems.indexer import Indexer, IRService
 from fusion.sensors import SensorService, Report, ReportError, Manager
 from math import pi
-from subsystems import indexer
+from subsystems import Indexer, Hopper, Shooter
 
 class ShiftOneForward(Command):
 
@@ -13,23 +13,27 @@ class ShiftOneForward(Command):
 
     def __init__(self, pass_check:bool = False):
         super().__init__(__name__)
-        self.requires(indexer)
+        self.requires(Indexer())
         self.pass_check = pass_check
 
     def initialize(self):
-        if not indexer.check_top() or self.pass_check:
-            indexer.set_belt_ticks(REQUIRED_TICKS)
-            for ball in indexer.ball_list:
+        earlier_report = Indexer().check_top()
+        if not Indexer().check_top() or self.pass_check:
+            Indexer().set_belt_ticks(REQUIRED_TICKS)
+            for ball in Indexer().ball_list:
                 ball += 1
-                if ball == 6:
-                    indexer.ball_list.pop()
-                if indexer.check_entry():
-                    indexer.ball_list.insert(1)
+                if earlier_report:
+                    Shooter().ball_list.insert(Indexer().ball_list[-1])
+                    Indexer().ball_list.pop()
+
+                if Indexer().check_entry():
+                    Indexer().ball_list.insert(Hopper().ball_list[-1])
+                    Hopper().ball_list.pop()
             
                 
 
     def isFinished(self):
-        if indexer.belt_controller.get() == 0:
+        if Indexer().belt_controller.get() == 0:
             return True
     
     def end(self):
@@ -39,17 +43,17 @@ class ShiftOneBack(Command):
 
     def __init__(self):
         super().__init__('ShiftOneBack')
-        self.requires(indexer)
+        self.requires(Indexer())
 
     def initialize(self):
-        indexer.set_belt_ticks(-1*(ShiftOneForward.REQUIRED_TICKS))
+        Indexer().set_belt_ticks(-1*(ShiftOneForward.REQUIRED_TICKS))
         for ball in indexer.ball_list:
             ball -= 1
             if ball == 0:
-                indexer.ball_list.pop(0)
+                Indexer().ball_list.pop(0)
 
     def isFinished(self):
-        if indexer.belt_controller.get() == 0:
+        if Indexer().belt_controller.get() == 0:
             return True
 
     

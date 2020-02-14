@@ -1,7 +1,8 @@
 from wpilib.command import Command
-from subsystems import indexer, IRService, BreakReport
+from subsystems import Indexer, IRService, BreakReport, Shooter, Hopper
 from fusion.sensors import Manager
 from commands.indexer import ShiftOverOne
+from _pynetworktables import NetworkTable
 
 class MasterCommand(Command):
 
@@ -14,8 +15,14 @@ class MasterCommand(Command):
 
     def execute(self):
         report = Manager().get(IRService, BreakReport)
-        if report[0]:
-            ShiftOverOne().start()
+        ready_to_shoot = False
+        if NetworkTable.getTable("limelight").getNumber('tx') == 0 and Shooter().get_state() == Shooter.State.WAITING:
+            ready_to_shoot = True
+        ShiftOverOne(ready_to_shoot).start() # Winston, can you check to make sure I am doing this right?
+
+        
+
+        
     
     def end(self):
         pass
