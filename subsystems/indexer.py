@@ -8,7 +8,7 @@ from wpilib import DigitalInput
 from wpilib.command import Subsystem
 
 import subsystems
-from fusion.sensors import Manager, Report, ReportError, SensorService\
+from fusion.sensors import Manager, Report, ReportError, SensorService
 from fusion.ball_class import VirtualBall
 
 class IRService(SensorService):
@@ -61,21 +61,10 @@ class Indexer(Subsystem):
     TARGET_VELOCITY = 10000  # ticks/100ms
     MAX_MOTOR_ACCELERATION = 2000  # ticks/100ms/s
 
-        def change_state(self, new_state):
-            self.state = new_state
-
-        def return_state(self):
-            return self.state
-
     class IndexerState(Enum):
         RUNNING = 0  # Belts moving
         NOT_READY = 1  # No ball at top
         READY = 2  # Ball at top
-
-    """
-    Defines the motor IDs, beam IDs, and the State Enums for use later
-    The ball states and fake ball might or might not be outdated
-    """
 
     def __init__(self):
 
@@ -92,7 +81,7 @@ class Indexer(Subsystem):
 
         self.belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
-        self.ball_list = []
+        self.ball_list = [] # Ball is denoted by an integer from 1 to 5, with the integer denoting position
 
         """
         Define all the break beams and motor controllers
@@ -100,13 +89,29 @@ class Indexer(Subsystem):
         """
 
 
+    def change_state(self, new_state):
+        self.state = new_state
+
+    def return_state(self):
+        return self.state
+    
+    """
+    Defines the motor IDs, beam IDs, and the State Enums for use later
+    The ball states and fake ball might or might not be outdated
+    """
+
+
     @staticmethod
-    def convert_ms_to_ticks(self, value: float) -> int:
+    def convert_ms_to_ticks(value: float) -> int:
         pass
 
-    # def checkTop(self):
-    #     report = Manager().get(IRService.BreakReport)
-    #     return report[2]
+    def check_top(self):
+        report = Manager().get(IRService.BreakReport)
+        return report[2]
+
+    def check_bottom(self):
+        report = Manager().get(IRService.BreakReport)
+        return report[0]
 
     def set_belt_ticks(self, ticks: int = 0):
         # Angle in encoder ticks
@@ -128,14 +133,7 @@ class Indexer(Subsystem):
     def remove_ball(self, pos = -1):
         ball_list.pop(pos)
 
-    def get_ball_pos(self):
-        positions = []
-        for ball in ball_list:
-            position.append(self.belt_controller.getSelectedSensorPosition() - ball.init_pos)
-        return positions
-
     def check_top(self):
         report = Manager().get(IRService.BreakReport)
         return report[2]
 
-     
