@@ -1,5 +1,5 @@
 from wpilib.command import Command
-from subsystems import intake
+from subsystems import intake, Hopper
 from fusion import VirtualBall
 
 class MasterCommand(Command):
