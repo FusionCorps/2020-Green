@@ -136,4 +136,7 @@ class Indexer(Subsystem):
     def check_top(self):
         report = Manager().get(IRService.BreakReport)
         return report[2]
+    
+    indexer = Indexer()
+
 
