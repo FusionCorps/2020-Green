@@ -27,3 +27,4 @@ class Intake(Subsystem):
     def turn_off(self):
         self.intake_controller.stopMotor()
 
+intake = Intake()
