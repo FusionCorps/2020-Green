@@ -116,3 +116,5 @@ class Chassis(Subsystem):
             motor.configSCurveStrength(Chassis.S_CURVE_STRENGTH)
 
         self._drive = DifferentialDrive(self._left_motors, self._right_motors)
+
+        chassis = Chassis()
