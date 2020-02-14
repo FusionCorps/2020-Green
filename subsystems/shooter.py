@@ -1,17 +1,14 @@
-import enum
-import logging
+from enum import Enum
+from math import cos, pi, sin, sqrt
 
-import commandbased as cmd
 import ctre
-import wpilib
 from wpilib.command import Subsystem
 
-from math import pi, sin, cos, sqrt
+from fusion.unique import unique
 
 
+@unique
 class Shooter(Subsystem):
-    _instance = None
-
     ANGLE = pi / 2
 
     ID_TALON_LEFT = 0
@@ -24,17 +21,12 @@ class Shooter(Subsystem):
 
     MAX_VELOCITY = 20480  # encoder ticks/100ms
 
-    class State(enum.Enum):
+    class State(Enum):
         STOPPED = 0  # Wheel stopped
         SPOOLING = 1  # Wheel speeding up
         WAITING = 2  # Wheel at speed; waiting for ball
         SHOOTING = 3  # Wheel at speed; ball loading
         SLOWING = 4  # Wheel slowing down
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Shooter, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
 
     def __init__(self):
         super().__init__("Shooter")
@@ -108,4 +100,3 @@ class Shooter(Subsystem):
 
     def set(self, control_mode: ctre.ControlMode, value):
         self._talon_l.set(mode=control_mode, demand0=value)
-

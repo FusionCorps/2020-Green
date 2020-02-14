@@ -1,16 +1,17 @@
+from ctre import ControlMode
 from wpilib.command import InstantCommand
 
-from ctre import ControlMode
+from fusion.unique import unique
+from subsystems import Hopper
 
-import subsystems
 
-
+@unique
 class SetPercentage(InstantCommand):
     def __init__(self, percentage: float):
         super().__init__("SetPercentage")
-        self.requires(subsystems.Hopper())
 
+        self.requires(Hopper())
         self.percentage = percentage
 
     def initialize(self):
-        subsystems.Hopper().set(ControlMode.PercentOutput, self.percentage)
+        Hopper().set(ControlMode.PercentOutput, self.percentage)

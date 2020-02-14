@@ -1,35 +1,36 @@
+from fusion.unique import unique
 from ctre import ControlMode
 from wpilib.command import Command, InstantCommand
 
-import subsystems
-
+from subsystems import Intake
 import inputs
 
 
+@unique
 class SetJoystick(Command):
     def __init__(self):
         super().__init__("SetJoystick")
-        self.requires(subsystems.Intake())
+
+        self.requires(Intake())
 
     def execute(self):
-        subsystems.Intake().set(
-            ControlMode.PercentOutput, inputs.XBoxController().axis_l_trigger
-        )
+        Intake().set(ControlMode.PercentOutput, inputs.XBoxController().axis_l_trigger)
 
     def interrupted(self):
         self.end()
 
     def end(self):
-        subsystems.Intake().set(ControlMode.PercentOutput, 0.0)
+        Intake().set(ControlMode.PercentOutput, 0.0)
 
 
+@unique
 class SetPercentage(InstantCommand):
     def __init__(self, percentage: float):
         super().__init__("SetPercentage")
-        self.requires(subsystems.Intake())
+
+        self.requires(Intake())
 
         self.percentage = percentage
 
     def initialize(self):
-        subsystems.Intake().set(ControlMode.PercentOutput, self.percentage)
-
+        Intake().set(ControlMode.PercentOutput, self.percentage)

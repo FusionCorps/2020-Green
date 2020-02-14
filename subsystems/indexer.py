@@ -1,23 +1,16 @@
-from enum import Enum
-from time import sleep
-from typing import List, Optional
-
 import ctre
-from ctre import ControlMode, WPI_TalonSRX
-from wpilib import DigitalInput
+from ctre import ControlMode
 from wpilib.command import Subsystem
 
-import subsystems
-from fusion.sensors import Manager, Report, ReportError, SensorService
+from fusion.unique import unique
 
 
+@unique
 class Indexer(Subsystem):
     """Controlled ball manager.
 
     Uses IR Light Breakage sensors to estimate ball position.
     """
-
-    _instance = None
 
     TALON_ID = 40
     TALON_FPID = (0.0, 0.1, 0.0, 0.0)
@@ -26,15 +19,8 @@ class Indexer(Subsystem):
 
     BALL_MOVEMENT_TICKS = 2  # m
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(Indexer, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
     def __init__(self):
         self._belt_controller = ctre.WPI_TalonFX(Indexer.TALON_ID)
-
-        self._balls: List[Ball] = []
 
         self._belt_controller.config_kP(0, Indexer.TALON_FPID[1])
         self._belt_controller.config_kI(0, Indexer.TALON_FPID[2])
@@ -65,4 +51,3 @@ class Indexer(Subsystem):
 
     def zero_encoder(self) -> None:
         self._belt_controller.setSelectedSensorPosition(0)
-

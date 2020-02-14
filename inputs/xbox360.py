@@ -1,22 +1,15 @@
-from functools import partial
-from weakref import WeakKeyDictionary
-
 from wpilib import Joystick
 from wpilib.buttons import JoystickButton
 
+from fusion.unique import unique
 
+
+@unique
 class XBoxController(Joystick):
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(XBoxController, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
     def __init__(self, port: int = 0):
         super().__init__(port)
 
-        items = {
+        self.items = {
             "a": 1,
             "b": 2,
             "x": 3,
@@ -33,11 +26,15 @@ class XBoxController(Joystick):
             "axis_r_stick_horiz": 4,
         }
 
-        for item, number in items.items():
+        # Adds attributes based on items
+        for item, number in self.items.items():
             if "axis" in item:
-                setattr(
-                    XBoxController, item, property(lambda self: self.getRawAxis(number))
-                )
+                setattr(self, item, lambda self: self.getRawAxis(number))
             else:
                 self.__dict__[item] = JoystickButton(self, number)
 
+    def __getattr__(self, name):
+        # Overloaded very jankily, but this works well
+        if f"axis_{name}" in list(filter(lambda i: "axis" in i, self.items.keys())):
+            return object.__getattribute__(self, f"axis_{name}")(self)
+        return object.__getattribute__(self, name)

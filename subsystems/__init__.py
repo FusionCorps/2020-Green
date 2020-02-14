@@ -1,21 +1,21 @@
 """
-This module contains all subsystem functionality.
+This module contains all subsystem functionality and instances.
 
-NOTE: All Subsystems are Singleton classes. The best way to get an
-instance of a Subsystem is by using the class constructor, which
-will return the existing instance.
+All Subsystems are Singletons, meaning only one instance of that class may
+exist at a time. The preferred way of accessing Subsystem instances is
+importing the Subsystem class from the `subsystem` module then use
+constructor notation to fetch the instance.
 
 ```python
-chassis_instance = Chassis()
-chassis_instance_again = Chassis()
+from subsystems import Indexer
 
-assert chassis_instance is chassis__instance_again
+Indexer().do_something()
 ```
 """
 
 from .chassis import *
+from .hopper import *
 from .indexer import *
 from .intake import *
 from .lift import *
 from .shooter import *
-from .hopper import *

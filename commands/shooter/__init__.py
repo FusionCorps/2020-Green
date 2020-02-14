@@ -1,1 +1,1 @@
-from .set import SetVelocity, SetPercentage
+from .set import SetPercentage

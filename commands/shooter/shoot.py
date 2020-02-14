@@ -1,9 +1,10 @@
 from wpilib.command import Command
-from subsystems.shooter import Shooter
-from subsystems.indexer import Indexer
-from fusion.sensors import Manager
+
+from fusion.unique import unique
+from subsystems import Indexer, Shooter
 
 
+@unique
 class Shoot(Command):
     def __init__(self):
         super().__init__(__name__)
@@ -26,4 +27,3 @@ class Shoot(Command):
 
     def end(self):
         Shooter().state = Shooter().State.WAITING
-

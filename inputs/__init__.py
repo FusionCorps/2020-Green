@@ -1,4 +1,3 @@
 from inputs.xbox360 import XBoxController
 
-controller = XBoxController(0)
-
+xbox_controller = XBoxController(0)
