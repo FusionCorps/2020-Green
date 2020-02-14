@@ -5,16 +5,16 @@ from ctre import ControlMode
 class Climb(Command):
     def __init__(self):
         super().__init__("Climb")
-        self.requires(Climb())
+        self.requires(climb)
 
     def initialize(self):
-        Climb().set_climb_motor(ControlMode.MotionMagic, 0)
+        climb.set_climb_motor(ControlMode.MotionMagic, 0)
 
     def isFinished(self):
-        if Climb().get_climb_motor() == 0:
+        if climb.get_climb_motor() == 0:
             return True
 
     def end(self):
-        Climb().state = Climb.ClimbState.LOWERED
+        climb.state = Climb.ClimbState.LOWERED
         
 

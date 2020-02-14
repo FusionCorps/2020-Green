@@ -1,4 +1,4 @@
-from subsystems.climb import Climb
+from subsystems import climb
 from wpilib.command import Command
 from ctre import ControlMode
 
@@ -6,21 +6,21 @@ class Extend(Command):
 
     def __init__(self):
         super().__init__('Climb')
-        self.requires(Climb())
+        self.requires(climb)
 
     def initialize(self):
         return super().initialize(name="Extend", timeout=0.0, subsystem=Climb)
-        if Climb().state == Climb.ClimbState.LOWERED:
-            Climb().set_extend_motor(ControlMode.MotionMagic, Climb.TICKS_TO_FULL)
-            Climb().state == Climb.ClimbState.RISING
+        if climb.state == Climb.ClimbState.LOWERED:
+            climb.set_extend_motor(ControlMode.MotionMagic, Climb.TICKS_TO_FULL)
+            climb.state == Climb.ClimbState.RISING
         
     
     def isFinished(self):
-        if Climb().get_extend_motor() == 19456:
+        if climb.get_extend_motor() == 19456:
             return True
 
     def end(self):
-        Climb().state = Climb.ClimbState.RAISED
+        climb.state = Climb.ClimbState.RAISED
 
             
 

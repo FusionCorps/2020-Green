@@ -104,3 +104,5 @@ class Climb(Subsystem):
     def turn_off_extend(self):
         self.extend_controller.motorOff()
 
+    climb = Climb()
+
