@@ -1,3 +1,5 @@
+from typing import Union
+
 from ctre import ControlMode
 from wpilib.command import Command, InstantCommand
 
@@ -7,14 +9,18 @@ from subsystems import Intake
 
 
 @unique
-class SetJoystick(Command):
+class IntakeJoystickSet(Command):
     def __init__(self):
-        super().__init__("SetJoystick")
+        super().__init__("IntakeJoystickSet")
 
         self.requires(Intake())
 
     def execute(self):
-        Intake().set(ControlMode.PercentOutput, inputs.XBoxController().axis_l_trigger)
+        Intake().set(
+            ControlMode.PercentOutput,
+            inputs.XBoxController().axis_l_trigger
+            - inputs.XBoxController().axis_r_trigger,
+        )
 
     def interrupted(self):
         self.end()
@@ -24,13 +30,14 @@ class SetJoystick(Command):
 
 
 @unique
-class SetPercentage(InstantCommand):
-    def __init__(self, percentage: float):
-        super().__init__("SetPercentage")
+class IntakeSet(InstantCommand):
+    def __init__(self, control_mode: ControlMode, value: Union[float, int]):
+        super().__init__("IntakeSet")
 
         self.requires(Intake())
 
-        self.percentage = percentage
+        self.control_mode = control_mode
+        self.value = value
 
     def initialize(self):
-        Intake().set(ControlMode.PercentOutput, self.percentage)
+        Intake().set(self.control_mode, self.value)

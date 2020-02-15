@@ -1,40 +1,22 @@
+from typing import Union
+
+from ctre import ControlMode
 from wpilib.command import InstantCommand
-from subsystems import Indexer
 
 from fusion.unique import unique
+from subsystems import Indexer
 
 
 @unique
-class SetVelocity(InstantCommand):
-    def __init__(self, velocity):
-        super().__init__(__name__)
-
-        self.velocity = velocity
-        self.requires(Indexer())
-
-    def initialize(self):
-        Indexer().set_belt_velocity(self.velocity)
-
-
-@unique
-class SetPercentage(InstantCommand):
-    def __init__(self, percentage):
-        super().__init__("SetPercentage")
+class IndexerSet(InstantCommand):
+    def __init__(self, control_mode: ControlMode, value: Union[float, int]):
+        super().__init__(name="IndexerSet")
 
         self.requires(Indexer())
-        self.percentage = percentage
+
+        self.control_mode = control_mode
+        self.value = value
 
     def initialize(self):
-        Indexer().set_belt_percentage(self.percentage)
+        Indexer().set(self.control_mode, self.value)
 
-
-@unique
-class SetPosition(InstantCommand):
-    def __init__(self, ticks):
-        super().__init__("SetPosition")
-
-        self.ticks = ticks
-        self.requires(Indexer())
-
-    def initialize(self):
-        Indexer().set_belt_ticks()

@@ -7,7 +7,7 @@ from fusion.unique import unique
 
 
 @unique
-class JoystickDrive(Command):
+class ChassisJoystickDrive(Command):
     def __init__(self):
         super().__init__(name="JoystickDrive", timeout=0.0, subsystem=Chassis())
 

@@ -1,1 +1,1 @@
-from .set import SetPercentage
+from .set import *

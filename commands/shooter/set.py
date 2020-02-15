@@ -1,3 +1,5 @@
+from typing import Union
+
 from ctre import ControlMode
 from wpilib.command import InstantCommand
 
@@ -6,24 +8,15 @@ from subsystems.shooter import Shooter
 
 
 @unique
-class SetVelocity(InstantCommand):
-    def __init__(self, velocity: int):
-        super().__init__("SetVelocity")
+class ShooterSet(InstantCommand):
+    def __init__(self, control_mode: ControlMode, value: Union[float, int]):
+        super().__init__("ShooterSet")
+
         self.requires(Shooter())
 
-        self.velocity = velocity
+        self.control_mode = control_mode
+        self.value = value
 
     def initialize(self):
-        Shooter().set(ControlMode.Velocity, self.velocity)
+        Shooter().set(self.control_mode, self.value)
 
-
-@unique
-class SetPercentage(InstantCommand):
-    def __init__(self, percentage: float):
-        super().__init__("SetPercentage")
-        self.requires(Shooter())
-
-        self.percentage = percentage
-
-    def initialize(self):
-        Shooter().set(ControlMode.Velocity, self.percentage)

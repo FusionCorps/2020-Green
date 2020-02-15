@@ -34,7 +34,7 @@ class Indexer(Subsystem):
 
         self._belt_controller.setSelectedSensorPosition(0)  # Zero the magnetic encoder
 
-    def set_belt(self, control_mode: ControlMode, value) -> None:
+    def set(self, control_mode: ControlMode, value) -> None:
         """Set the belt controller.
 
         Args:

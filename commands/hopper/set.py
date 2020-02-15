@@ -1,19 +1,21 @@
+from typing import Union
+
 from ctre import ControlMode
 from wpilib.command import InstantCommand
 
-from functools import lru_cache
-from subsystems import Hopper
-
 from fusion.unique import unique
+from subsystems import Hopper
 
 
 @unique
-class SetPercentage(InstantCommand):
-    def __init__(self, percentage: float):
-        super().__init__("SetPercentage")
+class HopperSet(InstantCommand):
+    def __init__(self, control_mode: ControlMode, value: Union[float, int]):
+        super().__init__("HopperSet")
 
         self.requires(Hopper())
-        self.percentage = percentage
+
+        self.control_mode = control_mode
+        self.value = value
 
     def initialize(self):
-        Hopper().set(ControlMode.PercentOutput, self.percentage)
+        Hopper().set(self.control_mode, self.value)

@@ -14,15 +14,17 @@ from commands.shooter import SetPercentage
 SetPercentage(1.0).start()
 ```
 """
+from ctre import ControlMode
+
 from inputs.xbox360 import XBoxController
 
 from . import chassis, hopper, indexer, shooter
 
-XBoxController().a.whenPressed(shooter.SetPercentage(1.0))
-XBoxController().a.whenReleased(shooter.SetPercentage(0.0))
+XBoxController().a.whenPressed(shooter.ShooterSet(ControlMode.PercentOutput, 1.0))
+XBoxController().a.whenReleased(shooter.ShooterSet(ControlMode.PercentOutput, 0.0))
 
-XBoxController().b.whenPressed(indexer.SetPercentage(1.0))
-XBoxController().b.whenReleased(indexer.SetPercentage(0.0))
+XBoxController().b.whenPressed(indexer.IndexerSet(ControlMode.PercentOutput, 1.0))
+XBoxController().b.whenReleased(indexer.IndexerSet(ControlMode.PercentOutput, 0.0))
 
-XBoxController().x.whenPressed(hopper.SetPercentage(1.0))
-XBoxController().x.whenReleased(hopper.SetPercentage(0.0))
+XBoxController().x.whenPressed(hopper.HopperSet(ControlMode.PercentOutput, 1.0))
+XBoxController().x.whenReleased(hopper.HopperSet(ControlMode.PercentOutput, 0.0))
