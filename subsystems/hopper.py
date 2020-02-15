@@ -19,13 +19,21 @@ class Hopper(Subsystem):
         self.hopper_controller.configCruiseVelocity(Hopper.HOPPER_VEL_ACCEL_CURVE[0])
         self.hopper_controller.configAcceleration(Hopper.HOPPER_VEL_ACCEL_CURVE[1])
         self.hopper_controller.configSCurveStrength(Hopper.HOPPER_VEL_ACCEL_CURVE[2])
+
+        self.is_on = False
     
     def set_motor(self, control_mode: ControlMode, value):
         self.hopper_controller.set(control_mode, value)
+        self.is_on = True
 
     def turn_off(self):
         self.hopper_controller.motorOff()
+        self.is_on = False
 
+    def push_state(self):
+        robot_tables.putBoolean('HopperState', self.is_on)
+
+    
     hopper = Hopper()
 
     
