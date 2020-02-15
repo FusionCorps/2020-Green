@@ -1,9 +1,8 @@
 pyfrc
 robotpy-ctre
-robotpy-rev
 robotpy-navx
 robotpy-commands-v1
-robotpy-installer
+robotpy-rev-color
 smbus2
 pygame
 coverage

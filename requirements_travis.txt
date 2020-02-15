@@ -1,7 +1,7 @@
 pyfrc
 robotpy-ctre
-robotpy-rev
 robotpy-commands-v1
+robotpy-navx
+robotpy-rev-color
 coverage
 codacy-coverage
-smbus2
