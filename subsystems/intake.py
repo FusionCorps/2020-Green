@@ -1,5 +1,7 @@
 from ctre import VictorSPX, ControlMode
 from wpilib.command import Subsystem
+from _pynetworktables import NetworkTables
+from fusion.networktable import robot_table
 
 class Intake(Subsystem):
 
@@ -22,11 +24,16 @@ class Intake(Subsystem):
 
         self.ball_list = []
 
+        self.is_on = False
+
     def set_intake(self, velocity:float):
         # Velocity is in ticks/100ms
         self.intake_controller.set(ControlMode.Velocity, velocity)
 
     def turn_off(self):
         self.intake_controller.stopMotor()
+
+    def push_state(self):
+        robot_table.putBoolean('IntakeState', self.is_on)
 
 intake = Intake()
