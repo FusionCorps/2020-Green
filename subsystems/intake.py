@@ -16,7 +16,7 @@ class Intake(Subsystem):
     def set(self, control_mode: ControlMode, value):
         self._intake_controller.set(control_mode, value)
 
-    def initDefaultCommand(self):
-        from commands.intake import SetJoystick
+    # def initDefaultCommand(self):
+    #     from commands.intake import SetJoystick
 
-        self.setDefaultCommand(SetJoystick())
+    #     self.setDefaultCommand(SetJoystick())

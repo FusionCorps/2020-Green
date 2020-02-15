@@ -21,20 +21,20 @@ class XBoxController(Joystick):
             "axis_l_trigger": 2,
             "axis_r_trigger": 3,
             "axis_l_stick_vert": 1,
-            "axis_r_stick_vert": 5,  # TODO
-            "axis_l_stick_horiz": 6,  # TODO
+            "axis_r_stick_vert": 5,
+            "axis_l_stick_horiz": 0,
             "axis_r_stick_horiz": 4,
         }
 
         # Adds attributes based on items
         for item, number in self.items.items():
             if "axis" in item:
-                setattr(self, item, lambda self: self.getRawAxis(number))
+                self.__dict__[item] = self.getRawAxis(number)
             else:
                 self.__dict__[item] = JoystickButton(self, number)
 
     def __getattr__(self, name):
-        # Overloaded very jankily, but this works well
-        if f"axis_{name}" in list(filter(lambda i: "axis" in i, self.items.keys())):
-            return object.__getattribute__(self, f"axis_{name}")(self)
-        return object.__getattribute__(self, name)
+        try:
+            return object.__getattribute__(self, f"axis_{name}")
+        except AttributeError:
+            return object.__getattribute__(self, name)

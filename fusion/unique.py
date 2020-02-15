@@ -100,6 +100,8 @@ def test_ok():
     assert b_again is b
 
     assert a.val == "a"
+    a.val = 5
+    assert a.val == 5
     assert b.val == "b"
 
 
@@ -123,6 +125,7 @@ def test_inheritance():
     b = Test("b", 3)
 
     assert a is not b
+    assert issubclass(Test, SuperClass)
     assert a_diff is not a and a_diff is not b
 
     a_again = Test("a", 2)
