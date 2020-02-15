@@ -1,10 +1,13 @@
 from wpilib.command import InstantCommand
 from subsystems.indexer import Indexer
-from fusion.unique import Unique
+from functools import lru_cache
 
 
-@Unique
 class TurnOff(InstantCommand):
+    @lru_cache(maxsize=None)
+    def __new__(cls, *args, **kwargs):
+        return super().__new__(cls)
+
     def __init__(self):
         super().__init__("TurnOff")
         self.requires(Indexer())

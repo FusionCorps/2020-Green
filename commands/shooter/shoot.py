@@ -1,10 +1,10 @@
 from wpilib.command import Command
 
-from fusion.unique import Unique
+from fusion.unique import unique
 from subsystems import Indexer, Shooter
 
 
-@Unique
+@unique
 class Shoot(Command):
     def __init__(self):
         super().__init__(__name__)

@@ -5,10 +5,10 @@ from ctre import WPI_TalonSRX
 from wpilib.command import Subsystem
 from wpilib.drive import DifferentialDrive
 
-from fusion.unique import Unique
+from fusion.unique import unique
 
 
-@Unique
+@unique
 class Chassis(Subsystem):
     """
     Singleton subsystem containing all driving functionality.

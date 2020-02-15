@@ -1,10 +1,10 @@
 from wpilib.command import InstantCommand
 
-from fusion.unique import Unique
+from fusion.unique import unique
 from subsystems import Lift
 
 
-@Unique
+@unique
 class RaiseLift(InstantCommand):
     def __init__(self, distance):
         super().__init__("RaiseLift")

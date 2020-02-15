@@ -1,10 +1,10 @@
 from ctre import ControlMode, WPI_VictorSPX
 from wpilib.command import Subsystem
 
-from fusion.unique import Unique
+from fusion.unique import unique
 
 
-@Unique
+@unique
 class Intake(Subsystem):
     ID_INTAKE_CONTROLLER = 0
 

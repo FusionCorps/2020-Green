@@ -1,69 +1,83 @@
 """Functionality for a class decorator for unique instances.
 """
 
+from functools import lru_cache, wraps
+from inspect import signature
 
-class Unique:
-    """Unique class decorator.
 
-    This decorator will store instances of a *unique* class---classes that
-    can only have one instance corresponding to a set of arguments.
+def unique(unique_class):
+    """Class decorator for unique classes.
 
-    ```python
-    from unique import Unique
+    The unique decorator caches each instance of a class that corresponds to
+    unique arguments. This is useful to prevent multiple instances of one class
+    being created with the same arguments.
 
-    @Unique
-    class Test:
-        cls_val = 0
+    Example:
+        ```python
+        from fusion.unique import unique
 
-        def __init__(self, val):
-            self.val = val
+        @unique
+        class Test:
+            cls_val = 0
 
-    a = Test("a")
-    b = Test("b")
+            def __init__(self, val):
+                self.val = val
 
-    assert a is not b  # Passes
+        a = Test(1)
+        b = Test(2)
 
-    a_again = Test("a")
-    assert a_again is a  # Passes
+        assert a is not b
 
-    print(a.cls_val)  # 0
-    print(b.cls_val)  # 0
-    ```
+        a_again = Test(1)
+
+        assert a_again is a
+        ```
 
     Note:
-        Unique classes can inherit from superclasses without problems.
-        DO NOT, however, try to use a Unique class as a base class.
+        This is essential when dealing with robotPy segfaults, which occur when
+        a Python object that is managed from C gets garbage collected and
+        subsequently accessed (invalid). The `unique` decorator ensures there is
+        always at least one reference to a given instance and set of arguments.
 
-        Performance may be an issue in the future due to the lookups required
-        to use a unique class and/or the large keys needed.
+        DO NOT EVER USE A `@unique` CLASS AS A BASE CLASS!
     """
 
-    def __init__(self, unique_class):
-        self.instances = {}
-        self.unique_class = unique_class
+    def sort_args(func: callable):
+        """Sorts arguments before passing them to the wrapped function.
 
-    def __call__(self, *args, **kwargs):
-        # frozenset used to ensure keys are hashable
-        if not self.instances.get(
-            (
-                self.unique_class,
-                f_args := frozenset(args),
-                f_kwargs := frozenset(kwargs),
-            )
-        ):
-            # Adds an instance of the wrapped class if it doesn't exist in instances
-            self.instances[(self.unique_class, f_args, f_kwargs)] = self.unique_class(
-                *args, **kwargs
-            )
-        return self.instances[(self.unique_class, f_args, f_kwargs)]
+        Args:
+            func (callable): callable to be wrapped
+        """
 
-    def __getattr__(self, name):
-        # Overloaded to access wrapped class attributes
-        return object.__getattribute__(self.unique_class, name)
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            sig = signature(
+                unique_class.__init__
+            )  # Needs to get sig of class constructor to be useful
+
+            bound_arguments = sig.bind(*args, **kwargs)
+            bound_arguments.apply_defaults()
+
+            return func(
+                *bound_arguments.args, **dict(sorted(bound_arguments.kwargs.items()))
+            )
+
+        return wrapper
+
+    class Unique(unique_class):
+        @sort_args
+        @lru_cache(maxsize=None)
+        def __new__(cls, *args, **kwargs):
+            return super().__new__(cls)
+
+    return Unique
+
+
+# Pytest Tests
 
 
 def test_ok():
-    @Unique
+    @unique
     class Test:
         """
         Hello.
@@ -96,7 +110,7 @@ def test_inheritance():
         def __init__(self, super_val):
             self.super_val = super_val
 
-    @Unique
+    @unique
     class Test(SuperClass):
         cls_val = 0
 
@@ -124,22 +138,58 @@ def test_inheritance():
     assert a.super_val == 2
 
 
-# def test_subclass():
-#     @Unique
+def test_subclass():
+    @unique
+    class Test:
+        cls_val = 0
+
+        def __init__(self, a, time_to_completion=None):
+            self.time_to_completion = time_to_completion
+            self.a = a
+
+    class SubClass(Test):
+        subclass_val = 3
+
+        def __init__(self, val, time_to_completion=None):
+            super().__init__(0, time_to_completion=time_to_completion)
+            self.val = val
+
+    a = SubClass(1, time_to_completion=2)
+    b = SubClass(1, 2)
+
+    d = SubClass(2, 3)
+
+    assert a.subclass_val == 3
+    assert a.cls_val == 0
+
+    assert a is b
+
+    assert d is not a
+
+
+# def test_order():
+#     """The same arguments, but in a different order, should still return
+#     the same instance."""
+
+#     @unique
 #     class Test:
 #         cls_val = 0
 
-#         def __init__(self, val):
-#             self.val = val
+#         def __init__(self, a, b, c=1, d=2, *args, z=3, x=4, y=5, **kwargs):
+#             pass
+
+#     a = Test(-1, 0, 6, 7, 8, x=2, z=3, y=5, f=1, g=2)
+#     b = Test(-1, 0, 6, 7, 8, z=3, x=2, g=2, f=1)
+
+#     assert a is b
 
 #     class SubClass(Test):
-#         subclass_val = 3
+#         subclass_val = 0
 
-#         def __init__(self, val, super_val):
-#             super().__init__(super_val)
-#             self.val = val
+#         def __init__(self, a, b, time=0, **kwargs):
+#             super().__init__(-1, 0, 6, 7, 8, x=2, z=3, y=5, f=1, g=2)
 
-#     a = SubClass(1, 2)
-#     b = SubClass(1, 2)
+#     c = SubClass(1, 2, 3, z=1)
+#     d = SubClass(1, 2, z=1)
 
-#     assert a is not b
+#     assert c is d

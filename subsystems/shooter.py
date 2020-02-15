@@ -4,10 +4,10 @@ from math import cos, pi, sin, sqrt
 import ctre
 from wpilib.command import Subsystem
 
-from fusion.unique import Unique
+from fusion.unique import unique
 
 
-@Unique
+@unique
 class Shooter(Subsystem):
     ANGLE = pi / 2
 

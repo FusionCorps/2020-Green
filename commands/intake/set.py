@@ -2,11 +2,11 @@ from ctre import ControlMode
 from wpilib.command import Command, InstantCommand
 
 import inputs
-from fusion.unique import Unique
+from fusion.unique import unique
 from subsystems import Intake
 
 
-@Unique
+@unique
 class SetJoystick(Command):
     def __init__(self):
         super().__init__("SetJoystick")
@@ -23,7 +23,7 @@ class SetJoystick(Command):
         Intake().set(ControlMode.PercentOutput, 0.0)
 
 
-@Unique
+@unique
 class SetPercentage(InstantCommand):
     def __init__(self, percentage: float):
         super().__init__("SetPercentage")
