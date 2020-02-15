@@ -24,7 +24,7 @@ class ShiftOverOneSlot(Command):
 
     def initialize(self):
         Indexer().zero_encoder()
-        Indexer().set_belt(ControlMode.Position, ShiftOverOneSlot.REQUIRED_TICKS)
+        Indexer().set(ControlMode.Position, ShiftOverOneSlot.REQUIRED_TICKS)
 
     def isFinished(self):
         if Indexer().get_position() == ShiftOverOneSlot.REQUIRED_TICKS:

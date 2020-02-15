@@ -12,6 +12,14 @@ def unique(unique_class):
     unique arguments. This is useful to prevent multiple instances of one class
     being created with the same arguments.
 
+    Note:
+        This is essential when dealing with robotPy segfaults, which occur when
+        a Python object that is managed from C gets garbage collected and
+        subsequently accessed (invalid). The `unique` decorator ensures there is
+        always at least one reference to a given instance and set of arguments.
+
+        DO NOT EVER USE AN `@unique` CLASS AS A BASE CLASS! EVER!
+
     Example:
         ```python
         from fusion.unique import unique
@@ -32,14 +40,6 @@ def unique(unique_class):
 
         assert a_again is a
         ```
-
-    Note:
-        This is essential when dealing with robotPy segfaults, which occur when
-        a Python object that is managed from C gets garbage collected and
-        subsequently accessed (invalid). The `unique` decorator ensures there is
-        always at least one reference to a given instance and set of arguments.
-
-        DO NOT EVER USE A `@unique` CLASS AS A BASE CLASS!
     """
 
     def sort_args(func: callable):
