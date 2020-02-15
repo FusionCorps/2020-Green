@@ -5,8 +5,11 @@ import ctre
 import wpilib
 from wpilib.command import Subsystem
 
-from math import *
+from math import cos, sin, pi
 
+from _pynetworktables import NetworkTables
+
+from fusion.networktable import robot_table
 
 class Shooter(Subsystem):
     _instance = None
@@ -21,9 +24,6 @@ class Shooter(Subsystem):
     TALON_TURRET_FPID = (0.0, 1.0, 0.0, 0.0)
 
     ID_TALON_TURRET = 14
-
-
-
 
 
     MAX_VELOCITY = 20480  # encoder ticks/100ms
@@ -91,9 +91,7 @@ class Shooter(Subsystem):
         return self._state
 
     @staticmethod
-    def calculate_angular_velocity(
-        distance: float, height: float, shooter_angle: float = Shooter.ANGLE
-    ):
+    def calculate_angular_velocity(distance: float, height: float, shooter_angle: float):
         # Angle needs to be in RADIANS
         v_rob = 0
         height = 2.49  # meters
@@ -135,6 +133,9 @@ class Shooter(Subsystem):
     
     def set_turret(self, control_mode: ControlMode, value):
         self._talon_turret.set(mode=control_mode, demand0=value)
+
+    def push_state(self):
+        robot_table.putNumber('ShooterState', self._state)
     
-    shooter = Shooter()
+shooter = Shooter()
 
